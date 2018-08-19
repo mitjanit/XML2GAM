@@ -17,7 +17,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
+/**
+ * Classe per a l'extracció d'informació del fitxer XML del Xestib.
+ * @author IESManacor
+ * @version 2018.6
+ */
 public class XMLReader {
     
     Document doc;
