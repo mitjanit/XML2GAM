@@ -341,7 +341,7 @@ public class GAM {
         
         String command = "D:\\gam\\gam print orgs";			
 	String output = obj.executeCommand(command);
-        System.out.println(output);
+        //System.out.println(output);
         
         GOrg pare = getOrgUnit(parentUnit);
         
@@ -490,6 +490,7 @@ public class GAM {
         for(GUser u : professors){
             System.out.println(u);
         }
+        System.out.println(">>>>>> Total professors: "+professors.size());
     }
     
     /**
@@ -503,6 +504,7 @@ public class GAM {
         for(GUser u : alumnes){
             System.out.println(u);
         }
+        System.out.println(">>>>>> Total alumnes: "+alumnes.size());
     }
     
     /**
@@ -587,6 +589,7 @@ public class GAM {
             GUser u = getUserInfo(linies[i]);
             users.add(u);
         }
+        System.out.println(">>>>>> Total usuaris de la unitat "+unitat+": "+users.size());
         return users;
     }
     

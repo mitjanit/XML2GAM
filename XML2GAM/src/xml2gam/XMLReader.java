@@ -17,11 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-/**
- * Classe per a l'extracció d'informació del fitxer XML del Xestib.
- * @author IESManacor
- * @version 2018.6
- */
+
 public class XMLReader {
     
     Document doc;
@@ -68,8 +64,9 @@ public class XMLReader {
                 String departament = eProfe.getAttribute("departament");
                 
                 if(XML2GAM.DEBUG && departament.length()==0){
-                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + usuari+ "\t" + departament);
                     System.out.println("ALERTA! El professor/a no té departament!!!");
+                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + usuari+ "\t" + departament);
+                    System.out.println();
                 }
                 
                 Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament);
