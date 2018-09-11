@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import static xml2gam.XML2GAM.getEmailDep;
+import static xml2gam.XML2GAM.usernamesProfes;
 
 /**
  * Conjunt de mètodes per interactuar amb GAM.
@@ -564,11 +566,17 @@ public class GAM {
         
         ArrayList<GUser> users = new ArrayList<GUser>();
         for(int i=1; i<linies.length; i++){
-            System.out.println("LLegint info de l'usuari: "+linies[i]);
-            GUser u = getUserInfo(linies[i]);
-            users.add(u);
+            if(isOneEmail(linies[i])){
+                System.out.println("LLegint info de l'usuari: "+linies[i]);
+                GUser u = getUserInfo(linies[i]);
+                users.add(u);
+            }
         }
         return users;
+    }
+    
+    public boolean isOneEmail(String s){
+        return s.contains("@") && s.indexOf("@")==s.lastIndexOf("@");
     }
     
     /**
@@ -578,16 +586,21 @@ public class GAM {
     * @return Col·lecció dels usuaris de la unitat en el domini GSuite. 
     */   
     public ArrayList<GUser> getUsers(String unitat){
-        String command = "D:\\gam\\gam print users query \"orgUnitPath=/"+unitat+"\"";		
+        //String command = "D:\\gam\\gam print users query \"orgUnitPath=/"+unitat+"\"";	
+        String command = "D:\\gam\\gam print users query orgUnitPath=/"+unitat;	
+        System.out.println(command);
 	String output = obj.executeCommand(command);
-        //System.out.println(output);
+        System.out.println(output);
         String[] linies = output.split("\n");
+        
         
         ArrayList<GUser> users = new ArrayList<GUser>();
         for(int i=1; i<linies.length; i++){
-            System.out.println("LLegint info de l'usuari: "+linies[i]);
-            GUser u = getUserInfo(linies[i]);
-            users.add(u);
+            if(isOneEmail(linies[i])){
+                System.out.println("LLegint info de l'usuari: "+linies[i]);
+                GUser u = getUserInfo(linies[i]);
+                users.add(u);
+            }
         }
         System.out.println(">>>>>> Total usuaris de la unitat "+unitat+": "+users.size());
         return users;
@@ -655,16 +668,19 @@ public class GAM {
         String ap1 = remove_accents(p.ap1);
         String username = nom.substring(0, 1) + ap1.replaceAll("\\s", "");
         username = username.toLowerCase();
-        
+        System.out.println("Ckecking username: "+username);
+        System.out.println("Num. Usernames Profes del GSuite: "+usernamesProfes.size());
         if(XML2GAM.usernamesProfes.containsKey(username)){
+            System.out.println("USER NAME REPEATED!!!! "+ username);
             int n = XML2GAM.usernamesProfes.get(username);
             XML2GAM.usernamesProfes.put(username, n + 1);
             username = username.concat(Integer.toString(n));
         }
         else {
+            System.out.println("NEW USER NAME.");
             XML2GAM.usernamesProfes.put(username, 1);
         }
-        
+        System.out.println("Username per al professor/a "+nom+" "+ap1+" "+p.ap2+" es: "+username);
         return username;
     }
     

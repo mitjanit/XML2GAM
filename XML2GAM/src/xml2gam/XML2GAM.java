@@ -152,9 +152,10 @@ public class XML2GAM {
         System.out.println(u);
     }
     
-    public static boolean professorDinsDomini(ArrayList<GUser> users, Professor profeXML){
-        for(GUser u: users){
-            String codiProfeXML = profeXML.getCodi();
+    public static boolean professorDinsDomini(Professor profeXML){
+        String codiProfeXML = profeXML.getCodi();
+        System.out.println("CODI XESTIB NOU PROFE: "+codiProfeXML);
+        for(GUser u: professors){
             if(u.codiXestib.equalsIgnoreCase(codiProfeXML.trim())){
                 return true;
             }
@@ -229,6 +230,9 @@ public class XML2GAM {
         grups = new ArrayList<GGrup>();
         professors = new ArrayList<GUser>();
         
+        // Inicialitza Hash de Noms d'Usuaris dels Professors GSuite
+        usernamesProfes = new HashMap<String, Integer>();
+        
         while(true){
             int numOpcio = printOpcionsMenuGAM();
             switch(numOpcio){
@@ -238,13 +242,14 @@ public class XML2GAM {
                 case 3: grupsXML = llegirGrupsXML(xml); break;
                 case 4: professors = llegirProfesGAM(gam); break;
                 case 5: llegirAlumnesGAM(gam, alumnes); break;
-                case 6: llegirUsernamesProfesGAM(gam, usernamesProfes); break;
-                case 7: llegirUsernamesAlumnesGAM(gam, usernamesAlumnes); break;
+                case 6: llegirUsernamesProfesGAM(gam); break;
+                case 7: llegirUsernamesAlumnesGAM(gam); break;
                 case 8: llegirOrganitGAM(gam, orgs); break;
                 case 9: llegirGrupsGAM(gam); break;
                 case 10: llegirDepsGAM(gam); break;
                 case 11: comparaProfes(professors, profesXML); break;
                 case 12: comparaAlumnes(alumnes, alumnesXML); break;
+                case 13: creaProfeConsola(); break;
                 default: break;
             }
         }
@@ -291,6 +296,8 @@ public class XML2GAM {
         System.out.println("9) GAM :: Llegir Grups de correu del domini GSUITE.");
         System.out.println("10) GAM :: Llegir Departaments - Grups de correu del domini GSUITE.");
         System.out.println("11) GAM :: Sincronitza Professors entre XML Xestib i GSuite IESManacor.");
+        System.out.println("12) GAM :: Sincronitza Alumnes entre XML Xestib i GSuite IESManacor.");
+        System.out.println("13) GAM :: Crea professor/a a través de consola en el domini GSUITE IESManacor.");
         
         System.out.print(">>>>> Tria opció: ");
         Scanner teclat = new Scanner(System.in);
@@ -326,6 +333,42 @@ public class XML2GAM {
         return profesXML;
     }
     
+    public static void creaProfeConsola(){
+        Professor p = llegirProfeConsola();
+        if(professorDinsDomini(p)){ 
+            System.out.println("El professor " + p + " ja està en el Domini GSuite.");
+        }
+        else {
+                System.out.println("El professor " + p + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+p.getCodi());
+                gam.afegirProfessor(p, deps);
+            }
+    }
+    
+    public static Professor llegirProfeConsola(){
+        String codi, nom, ap1, ap2, usuari, departament;
+        System.out.println("****** Introduir dades del professor/a ******");
+        System.out.print(">>>>> Indica codi XESTIB: ");
+        Scanner teclat = new Scanner(System.in);
+        codi = teclat.next();
+        System.out.print(">>>>> Indica nom del professor/a: ");
+        teclat = new Scanner(System.in);
+        nom = teclat.next();
+        System.out.print(">>>>> Indica llinatge 1 del professor/a: ");
+        teclat = new Scanner(System.in);
+        ap1 = teclat.next();
+        System.out.print(">>>>> Indica llinatge 2 del professor/a: ");
+        teclat = new Scanner(System.in);
+        ap2 = teclat.next();
+        System.out.print(">>>>> Indica usuari del professor/a: ");
+        teclat = new Scanner(System.in);
+        usuari = teclat.next();
+        System.out.print(">>>>> Indica codi del Departament del professor/a: ");
+        teclat = new Scanner(System.in);
+        departament = teclat.next();
+        Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament);
+        return p;
+    }
+    
     public static void llegirAlumnesXML(XMLReader xml, ArrayList<Alumne> alumnesXML){
         ArrayList<Grup> grupsXML = xml.llegirGrups();
         System.out.print(">>>>> Indica nom del grup (ex: ifc31b): ");
@@ -349,18 +392,21 @@ public class XML2GAM {
         
         System.out.println("Num. Professors del GSUITE: "+professors.size());
         System.out.println("Num. Professors del XML: "+profesXML.size());
+        System.out.println("Num. Departaments del GSuite: "+deps.size());
+        System.out.println("Num. Usernames Profes del GSuite: "+usernamesProfes.size());
+        
         ArrayList<GUser> users = new ArrayList<GUser>();
         users.addAll(professors);
          
         int numNous=0, numRepes=0;
         for(Professor p : profesXML){
-            if(professorDinsDomini(users, p)){
+            if(professorDinsDomini(p)){
                 
                 System.out.println("El professor " + p + " ja està en el Domini GSuite.");
                 
                 GUser u = matchingProfessor(users,p);
                 
-                /*
+                /**/
                 //Actualitzar el grup del departament? (Sí/No)
                 gam.actualitzaDepartament(u, p, deps);
                 
@@ -370,14 +416,15 @@ public class XML2GAM {
                 
                 // Afegir al grup de Professors
                 gam.afegirGrupUsuari(u.email, "professors@iesmanacor.cat");
-                */
+                /**/
                 
                 users.remove(u);
                 numRepes++;
             }
             else {
                 System.out.println("El professor " + p + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+p.getCodi());
-                //gam.afegirProfessor(p, deps);
+                System.out.println(p.usuari+",iesmanacor2018,"+p.nom+","+p.ap1+" "+p.ap2+","+p.usuari+"@iesmanacor.cat,"+p.departament);
+                gam.afegirProfessor(p, deps);
                 numNous++;
             }
         }
@@ -387,7 +434,7 @@ public class XML2GAM {
         if(users.size()>0){
             for(GUser u : users){
                 System.out.println("Suspenent l'usuari: "+ u);
-                //gam.suspenUsuari(u.email);
+                gam.suspenUsuari(u.email);
             }
         }
         
@@ -491,13 +538,13 @@ public class XML2GAM {
     }
     
     
-    public static void llegirUsernamesProfesGAM(GAM gam, HashMap<String, Integer> usernamesProfes){
+    public static void llegirUsernamesProfesGAM(GAM gam){
         //Llegir els noms d'usuaris i cardinalitat del Domini GSuite (Professors)
         usernamesProfes = gam.getUserNames("professors");
-        System.out.println("Users (Profes): "+Arrays.asList(usernamesProfes));
+        System.out.println("Usernames ("+usernamesProfes.size()+"Profes): "+Arrays.asList(usernamesProfes));
     }
     
-    public static void llegirUsernamesAlumnesGAM(GAM gam, HashMap<String, Integer> usernamesAlumnes){
+    public static void llegirUsernamesAlumnesGAM(GAM gam){
         //Llegir els noms d'usuaris i cardinalitat del Domini GSuite (Professors)
         usernamesAlumnes = gam.getUserNames("alumnes");
         System.out.println("Users (Alumnes): "+Arrays.asList(usernamesAlumnes));
