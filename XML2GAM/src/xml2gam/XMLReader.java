@@ -362,6 +362,7 @@ public class XMLReader {
         NodeList nodes = doc.getElementsByTagName("ALUMNE");
         
         String codiGrup = XML2GAM.getCodiGrup(grups, nomCanonicGrup);
+        System.out.println("CODI GRUP: "+codiGrup);
 
         if(XML2GAM.DEBUG){
             System.out.println("\n\tInformació dels alumnes del curs: "+nomCanonicGrup+".");
@@ -386,14 +387,19 @@ public class XMLReader {
                     if(XML2GAM.DEBUG){
                         System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup);
                     }
+                    
                     if(g==null){
                         System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup);
                         System.out.println("ALERTA! l'alumne/a no té grup!!!");
                     }
+                    else {
 
-                    Alumne a = new Alumne(codi, nom, ap1, ap2, exp, grup);
-                    a.setGrup(g);
-                    alus.add(a);
+                        Alumne a = new Alumne(codi, nom, ap1, ap2, exp, grup);
+                        System.out.println("ALUMNE: "+a);
+                        a.setGrup(g);
+                        System.out.println("GRUP DE L'ALUMNE: "+g);
+                        alus.add(a);
+                    }
                 }
             }
         }
@@ -450,6 +456,7 @@ public class XMLReader {
                         }
                         
                         Grup g = new Grup(codiGrup, nomC, nomGrup, tutorGrup, codiCurs, descCurs);
+                        System.out.println("Creat grup: "+g);
                         grups.add(g);
                     }
                 }

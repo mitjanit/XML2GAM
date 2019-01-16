@@ -579,6 +579,25 @@ public class GAM {
         return s.contains("@") && s.indexOf("@")==s.lastIndexOf("@");
     }
     
+    public ArrayList<String> getEmailsAlumnes(){
+        String command = "D:\\gam\\gam print users query \"orgUnitPath=/alumnes\"";	
+        System.out.println(command);
+	String output = obj.executeCommand(command);
+        System.out.println(output);
+        String[] linies = output.split("\n");
+        
+        ArrayList<String> emails = new ArrayList<String>();
+        for(int i=1; i<linies.length; i++){
+            if(isOneEmail(linies[i])){
+                System.out.println("LLegint email: "+linies[i]);
+                String s = linies[i].trim();
+                emails.add(s);
+            }
+        }
+        System.out.println(">>>>>> Total emails de la unitat alumnes "+emails.size());
+        return emails;
+    }
+    
     /**
     * Genera una col·lecció amb la informació del usuaris d'una unitat en el domini GSuite. 
     * 
@@ -630,7 +649,7 @@ public class GAM {
         String command = "D:\\gam\\gam print users query \"orgUnitPath=/"+unitat+"\"";	
         //String command = "D:\\gam\\gam print users custom all";	
 	String output = obj.executeCommand(command);
-        //System.out.println(output);
+        System.out.println(output);
         
         String[] linies = output.split("\n");
         
@@ -695,12 +714,15 @@ public class GAM {
         String nom = remove_accents(a.nom);
         String ap1 = remove_accents(a.ap1);
         String username = nom.substring(0, 1) + ap1.replaceAll("\\s", "");
-        username = username.toLowerCase();
+        String exp = a.expedient;
+        username = username.toLowerCase()+exp;
+        
         
         if(XML2GAM.usernamesAlumnes.containsKey(username)){
-            int n = XML2GAM.usernamesAlumnes.get(username);
+            System.out.println("L'usuari alumne "+username+" ja existeix al domini GSUTITE");
+            /*int n = XML2GAM.usernamesAlumnes.get(username);
             XML2GAM.usernamesAlumnes.put(username, n + 1);
-            username = username.concat(Integer.toString(n));
+            username = username.concat(Integer.toString(n));*/
         }
         else {
             XML2GAM.usernamesAlumnes.put(username, 1);
@@ -775,6 +797,15 @@ public class GAM {
         afegirUserCalendarACL(email, "iesmanacor.cat_43616c45787472614945534d616e61636f72@resource.calendar.google.com", "read");
         
         
+        // HOTSPOT
+        HotSpot.addUser(username,"iesmanacor2018",nom,llinatges,"professor", "PROFE");
+        System.out.println("HOTSPOT: Afegit usuari professor: "+nom+" "+llinatges+" / "+username);
+        
+    }
+    
+    
+    public boolean alumneNou(String emailAlumne){
+        return !XML2GAM.emailsAlumnes.contains(emailAlumne);
     }
     
     // NO ACABAT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -789,42 +820,54 @@ public class GAM {
         // Generar el nom d'usuari per al professor/a
         String username = generateUserName(a);
         String email =username+"@alumnes.iesmanacor.cat";
-        String nom = a.nom;
-        String llinatges = a.ap1+" "+a.ap2;
         
-        Grup g = a.grup;
-        
-        String pathOrg = getUnitPath(g);
-        //if(g.nomCanonic)
-        //XML2GAM.getPathUnitatAlumne(XML2GAM.orgs, a);
-        //eso/eso1a falta obtenir el nom canonic de la unitat organitzativa corresponent al grup de l'alumne";
-        
-        // Crea usuari
-        String password = "iesmanacor2018";
-        String command = "D:\\gam\\gam create user "+email+" firstname \""+nom+"\" lastname \""+llinatges+"\" password \""+password+"\" changepassword on org "+pathOrg;	
-	System.out.println(command);
-        //String output = obj.executeCommand(command);
-        //System.out.println(output);
-        
-        // Associar Codi XESTIB
-        String command2 = "D:\\gam\\gam update user "+email+" externalid organization "+a.codi+" ";	
-        System.out.println(command2);
-	//String output2 = obj.executeCommand(command2);
-        //System.out.println(output2);
-        
-        // Afegeix usuari al grup del curs
-        String emailGrup = g.nomCanonic+"@iesmanacor.cat";
-        if(g.nomCanonic.length()>0){
-            System.out.println("Afegint "+email+" a "+emailGrup);
-            //afegirGrupUsuari(email, emailGrup);
+        if(alumneNou(email)){
+            String nom = a.nom;
+            Grup g = a.grup;
+            if(g!=null){
+            String llinatges = a.ap1+" "+a.ap2+ " "+g.nomCanonic+" ";
+            System.out.println(username+",iesmanacor2018,"+a.nom+","+a.ap1+" "+a.ap2+","+email+","+g.codi);
+
+
+            String pathOrg = getUnitPath(g);
+            //if(g.nomCanonic)
+            //XML2GAM.getPathUnitatAlumne(XML2GAM.orgs, a);
+            //eso/eso1a falta obtenir el nom canonic de la unitat organitzativa corresponent al grup de l'alumne";
+
+            // Crea usuari
+            String password = "iesmanacor2018";
+            String command = "D:\\gam\\gam create user "+email+" firstname \""+nom+"\" lastname \""+llinatges+"\" password \""+password+"\" changepassword on org "+pathOrg;	
+            System.out.println(command);
+            String output = obj.executeCommand(command);
+            System.out.println(output);
+
+            // Associar Codi XESTIB
+            String command2 = "D:\\gam\\gam update user "+email+" externalid organization "+a.codi+" ";	
+            System.out.println(command2);
+            String output2 = obj.executeCommand(command2);
+            System.out.println(output2);
+
+            // Afegeix usuari al grup del curs
+            String emailGrup = g.nomCanonic+"@iesmanacor.cat";
+            if(g.nomCanonic.length()>0){
+                System.out.println("Afegint "+email+" a "+emailGrup);
+                afegirGrupUsuari(email, emailGrup);
+            }
+            else {
+                System.out.println("ALERTA!! Alumne sense curs/grup. "+a);
+            }
+
+            // Afegir al grup de Alumnes
+            System.out.println("Afegint "+email+" a alumnes@iesmanacor.cat");
+            afegirGrupUsuari(email, "alumnes@iesmanacor.cat");
+            
+            // HOTSPOT
+            HotSpot.addUser(username,"iesmanacor2018",a.nom,a.ap1+" "+a.ap2,g.nomCanonic, "ALU");
+            System.out.println("HOTSPOT: Afegit usuari alumne: "+a.nom+" "+a.ap1+" "+a.ap2+" / "+username);
+            }
+        } else {
+            System.out.println("L'alumne ja està al domini GSUITE alumnes // "+a);
         }
-        else {
-            System.out.println("ALERTA!! Alumne sense curs/grup. "+a);
-        }
-        
-        // Afegir al grup de Alumnes
-        System.out.println("Afegint "+email+" a alumnes@iesmanacor.cat");
-        //afegirGrupUsuari(email, "alumnes@iesmanacor.cat");
     }
     
     /**
@@ -840,12 +883,6 @@ public class GAM {
         }
         else if(g.nomCanonic.contains("batx")){
             rutaUnitat +="batx/"+g.nomCanonic.substring(0, g.nomCanonic.length()-1);
-        }
-        else if(g.nomCanonic.contains("ct")){
-            rutaUnitat +="ct";    // no està bé
-        }
-        else if(g.nomCanonic.contains("ebasica")){
-            rutaUnitat +="ebasica";    // no està bé
         }
         else {
             rutaUnitat +="fp/"+g.nomCanonic.substring(0, g.nomCanonic.length()-1);
@@ -931,10 +968,6 @@ public class GAM {
         }
     }
     
-
-    public void AfegirAlumne(Alumne a, ArrayList<GGrup> grups){
-        
-    }
     
     /**
     * Suspén a l'usuari de GSuite. 
