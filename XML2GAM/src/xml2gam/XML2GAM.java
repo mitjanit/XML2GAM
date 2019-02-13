@@ -69,6 +69,44 @@ public class XML2GAM {
      */
     public static HashMap<String, Integer> usernamesAlumnes;
     
+    
+    /**
+     * Mapa de Hashing dels emails de grups de correus dels departaments del domini GSuite.
+     */
+    public static HashMap<String, String> emailsDeps;
+    
+    
+    /**
+     * Mètode per emplenar el HashMap dels grups de correus dels Departaments amb el seu ID (XML) i EMAIL (GSUITE).
+     * @return HashMap amb tuples (ID Departament_XML , EMAIL Departament GSUITE).
+     */
+    public static HashMap<String, String> setEmailsDeps() {
+        HashMap<String, String> emailsDeps = new HashMap();
+
+        emailsDeps.put("1130", "dept.administracio@iesmanacor.cat");
+        emailsDeps.put("1134", "dept.automocio@iesmanacor.cat");
+        emailsDeps.put("1136", "dept.biologia@iesmanacor.cat");
+        emailsDeps.put("1124", "dept.castella@iesmanacor.cat");
+        emailsDeps.put("1125", "dept.catala@iesmanacor.cat");
+        emailsDeps.put("1131", "dept.comerc@iesmanacor.cat");
+        emailsDeps.put("1119", "dept.educaciofisica@iesmanacor.cat");
+        emailsDeps.put("1132", "dept.electricitat@iesmanacor.cat");
+        emailsDeps.put("1120", "dept.filosofia@iesmanacor.cat");
+        emailsDeps.put("1121", "dept.fisicaiquimica@iesmanacor.cat");
+        emailsDeps.put("1122", "dept.fol@iesmanacor.cat");
+        emailsDeps.put("1133", "dept.informatica@iesmanacor.cat");
+        emailsDeps.put("1137", "dept.llenguesestrangeres@iesmanacor.cat");
+        emailsDeps.put("1126", "dept.matematiques@iesmanacor.cat");
+        emailsDeps.put("1127", "dept.musica@iesmanacor.cat");
+        emailsDeps.put("1117", "dept.orientacio@iesmanacor.cat");
+        emailsDeps.put("1135", "dept.plastica@iesmanacor.cat");
+        emailsDeps.put("1138", "dept.socials@iesmanacor.cat");
+        emailsDeps.put("1128", "dept.tecnologia@iesmanacor.cat");
+
+        return emailsDeps;
+    }
+    
+    
     // Estructures de dades per guardar info del fitxer XML del XESTIB
     public static ArrayList<Professor> profesXML = new ArrayList<Professor>();
     public static ArrayList<Alumne> alumnesXML = new ArrayList<Alumne>();
@@ -238,6 +276,9 @@ public class XML2GAM {
         usernamesAlumnes = new HashMap<String, Integer>();
         emailsAlumnes = new ArrayList<String>();
         
+        // Carrega els codis i emails dels grups de departaments.
+        emailsDeps = setEmailsDeps();
+        
         
         llegirEmailsAlumnesFITXER();
         /*
@@ -250,8 +291,8 @@ public class XML2GAM {
         
         //llegirUsuarisCreatsFitxer("2018-10-01");
         
-        HotSpot hs = new HotSpot();
-        hs.connectHotSpot();
+        //HotSpot hs = new HotSpot();
+        //hs.connectHotSpot();
         
         while(true){
             int numOpcio = printOpcionsMenuGAM();

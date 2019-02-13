@@ -104,8 +104,10 @@ public class GAM {
         ArrayList<GGrup> grups = new ArrayList<GGrup>();
         for(int i=1; i<linies.length; i++){
             System.out.println("LLegint info del grup: "+linies[i]);
-            GGrup g = getGroupInfo(linies[i]);
-            grups.add(g);
+            if(isOneEmail(linies[i])){
+                GGrup g = getGroupInfo(linies[i]);
+                grups.add(g);
+            }
         }
         return grups;
     }
@@ -127,6 +129,7 @@ public class GAM {
         
         for(int i=0; i<linies.length; i++){
             String linia = linies[i];
+            System.out.println("Llegint linea: "+linia);
             String[] columnes = linia.split(":");
             if(columnes.length>1){
                 String param = columnes[0].trim();
