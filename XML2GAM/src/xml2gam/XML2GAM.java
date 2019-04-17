@@ -31,6 +31,7 @@ public class XML2GAM {
     public static final String DOMINI = "IESMANACOR.CAT";
     static final boolean DEBUG = true;
     static final String MEUEMAIL = "aramirez@iesmanacor.cat";
+    static final boolean useHotSpot = true;
     
     /**
      * Conjunt de noms canònics dels grups de correu de tutoria (eso, batx, fp i fpb).
@@ -40,6 +41,8 @@ public class XML2GAM {
      * Noms d'usuaris dels membres de l'equip directiu i del grup directiva@iesmanacor.cat.
      */
     static final String[] DIRECTIVA = {"fsapena", "mamengual", "mcubells", "mfuster", "mnicolau", "mreyes", "priera", "ssureda"};
+    
+    static final String[] TAGS = {"batx1", "batx2", "eso1", "eso2", "eso3", "eso4", "esoee", "adg21", "adg32", "com11", "com21", "com31", "ele21", "ele31", "ifc21", "ifc31", "ifc33", "tmv11", "tmv21", "tmv22", "tmv31"};
     
     static GAM gam;
     static ArrayList<GGrup> cursos;
@@ -281,18 +284,19 @@ public class XML2GAM {
         
         
         llegirEmailsAlumnesFITXER();
-        /*
+        /**/
         System.out.println(emailsAlumnes.size());
         for(String s : emailsAlumnes){
-            gam.afegirGrupUsuari(s, "alumnes@iesmanacor.cat");
+            //gam.afegirGrupUsuari(s, "alumnes@iesmanacor.cat");
             System.out.println("Afegint "+s+ "alumnes@iesmanacor.cat");
-        }*/
+        }/**/
         
         
         //llegirUsuarisCreatsFitxer("2018-10-01");
-        
-        //HotSpot hs = new HotSpot();
-        //hs.connectHotSpot();
+        if(useHotSpot){
+            HotSpot hs = new HotSpot();
+            hs.connectHotSpot();
+        }
         
         while(true){
             int numOpcio = printOpcionsMenuGAM();
@@ -315,6 +319,8 @@ public class XML2GAM {
                 case 15: afegirProfesGrups(gam,xml); break;
                 case 16: //llegirEmailsAlumnes(gam); 
                          afegirAlumnes(gam); break;
+                case 17:   removeUsersFromGroup(gam);//removeTAGname(gam); 
+                            break;
                 default: break;
             }
         }
@@ -366,6 +372,7 @@ public class XML2GAM {
         System.out.println("14) GAM :: Crea alumne a través de consola en el domini GSUITE IESManacor.");
         System.out.println("15) GAM :: Afegeix els professors als grups de classe en el domini GSUITE IESManacor.");
         System.out.println("16) GAM :: Afegeix els alumnes al domini GSUITE IESManacor.");
+        System.out.println("17) GAM :: Esborra TAGs dels noms dels alumnes.");
         
         System.out.print(">>>>> Tria opció: ");
         Scanner teclat = new Scanner(System.in);
@@ -803,6 +810,20 @@ public class XML2GAM {
 	}
         
         System.out.println("NUM ALUMNES AL DOMINI: "+emailsAlumnes.size());
+    }
+    
+    public static void removeTAGname(GAM gam){
+        System.out.print(">>>>> Indica email alumne: ");
+        Scanner teclat = new Scanner(System.in);
+        String emailAlumne = teclat.next();
+        gam.removeTAGname(emailAlumne);
+    }
+    
+    public static void removeUsersFromGroup(GAM gam){
+        System.out.print(">>>>> Indica email del grup: ");
+        Scanner teclat = new Scanner(System.in);
+        String emailGrup = teclat.next();
+        gam.removeAllUsersFromGroup(emailGrup);
     }
     
 }

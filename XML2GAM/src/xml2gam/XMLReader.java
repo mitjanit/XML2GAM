@@ -333,11 +333,11 @@ public class XMLReader {
                 Grup g = getGrupAlumne(grups, grup);
                 
                 if(XML2GAM.DEBUG){
-                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup);
+                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup + "\t" + g);
                     
                 }
                 if(g==null){
-                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup);
+                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup + "\t" + g);
                     System.out.println("ALERTA! l'alumne/a no té grup!!!");
                 }
                 

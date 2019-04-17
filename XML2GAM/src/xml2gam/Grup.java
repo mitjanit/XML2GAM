@@ -26,4 +26,14 @@ public class Grup {
         return codi+"\t"+nomCanonic+"\t"+nom+"\t"+descripcio+"\t"+tutor;
     }
     
+    boolean esGrupCanonic(){
+        
+        for(String grup : XML2GAM.TAGS){
+            if(grup.contains(this.nomCanonic)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }
