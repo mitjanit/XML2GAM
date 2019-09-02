@@ -474,6 +474,17 @@ public class GAM {
     }
     
     /**
+     * Esborra l'etiqueta del Grup al que pertanyen els alumnes del seus llinatge
+     * @param emailAlumnes Llista de tots els emails d'alumnes (llegida del fitxer per accelerar).
+     */
+    public void removeAllTAGnames(ArrayList<String> emailAlumnes){
+        for(String emailAlumne : emailAlumnes){
+            removeTAGname(emailAlumne);
+        }
+        
+    }
+    
+    /**
      * Esborra l'etiqueta del Grup al que pertany un alumne del seu llinatge.
      * @param emailUser email de l'alumne sobre el que operar.
      */
@@ -485,7 +496,7 @@ public class GAM {
                 int index = user.lastName.indexOf(s);
                 String newLastName = user.lastName.substring(0, index);
                 System.out.println("New last name: "+newLastName.trim());
-                String command = "D:\\gam\\gam update user "+emailUser+" lastname "+newLastName.trim();
+                String command = "D:\\gam\\gam update user "+emailUser+" lastname \""+newLastName.trim()+"\"";
                 System.out.println(command);
                 String output = obj.executeCommand(command);
                 System.out.println(output);
@@ -511,10 +522,32 @@ public class GAM {
     
     public void removeAllUsersFromGroup(String emailGrup){
         System.out.println(">> Borrant tots els usuaris del grup "+emailGrup+"...");
-        String command = "D:\\gam\\gam update group "+emailGrup+" remove all users";
+        String command = "D:\\gam\\gam update group "+emailGrup+" clear";
         System.out.println(command);
         String output = obj.executeCommand(command);
         System.out.println(output);
+    }
+    
+    /**
+     * Buida tots els grups d'alumnes d'usuaris.
+     * @param TAGS Utilitza els tags (eso1, batx2, ifc33, ...) per accedir als noms dels grups (eso1a@iesmanacor.cat).
+     */
+    public void removeAllStudentsFromGroups(String[] TAGS){
+        String[] lletres = {"a", "b", "c", "d", "e", "f"};
+        for(String tag : TAGS){
+            for(String lletra : lletres){
+                String emailGrup = tag+lletra+"@iesmanacor.cat";
+                System.out.println(">> Borrant tots els usuaris del grup "+emailGrup+"...");
+                String command = "D:\\gam\\gam update group "+emailGrup+" clear";
+                System.out.println(command);
+                String output = obj.executeCommand(command);
+                System.out.println(output);
+            }
+        }
+        
+        // Altres grups especials (esoee, paccgm)
+        removeAllUsersFromGroup("esoee@iesmanacor.cat");
+        removeAllUsersFromGroup("paccgm@iesmanacor.cat");
     }
     
     /**
@@ -672,6 +705,25 @@ public class GAM {
         return users;
     }
     
+    public void actualitzarNomiLlinatges(Alumne a){
+        
+        //AIXÒ PER CORREGIR ACCENTS
+        String nom = a.nom.toUpperCase();
+        String nomC = remove_accents(nom);
+        String llinatges = a.ap1.toUpperCase()+" "+a.ap2.toUpperCase();
+        String llinatgesC = remove_accents(llinatges);
+        
+        String userName = generateUserName(a);
+        String email =userName+"@alumnes.iesmanacor.cat";
+        
+        // Actualitza NOM i LLINATGES
+        String command = "D:\\gam\\gam update user "+email+" firstname \""+nomC.trim()+"\" lastname \""+llinatgesC.trim()+"\"";
+        System.out.println(command);
+        String output = obj.executeCommand(command);
+        System.out.println(output);
+        
+    }
+    
     /**
     * Elimina els accents dels noms i llinatges per a generar noms d'usuari del domini GSuite. 
     * 
@@ -749,6 +801,7 @@ public class GAM {
         System.out.println("Username per al professor/a "+nom+" "+ap1+" "+p.ap2+" es: "+username);
         return username;
     }
+    
     
     /**
     * Retorna el nom d'usuari per a l'alumne en el domini GSuite. 

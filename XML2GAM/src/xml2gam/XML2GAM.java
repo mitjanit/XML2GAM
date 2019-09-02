@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class XML2GAM {
     public static final String DOMINI = "IESMANACOR.CAT";
     static final boolean DEBUG = true;
     static final String MEUEMAIL = "aramirez@iesmanacor.cat";
-    static final boolean useHotSpot = true;
+    static final boolean useHotSpot = false;
     
     /**
      * Conjunt de noms canònics dels grups de correu de tutoria (eso, batx, fp i fpb).
@@ -42,7 +43,7 @@ public class XML2GAM {
      */
     static final String[] DIRECTIVA = {"fsapena", "mamengual", "mcubells", "mfuster", "mnicolau", "mreyes", "priera", "ssureda"};
     
-    static final String[] TAGS = {"batx1", "batx2", "eso1", "eso2", "eso3", "eso4", "esoee", "adg21", "adg32", "com11", "com21", "com31", "ele21", "ele31", "ifc21", "ifc31", "ifc33", "tmv11", "tmv21", "tmv22", "tmv31"};
+    static final String[] TAGS = {"bi1", "bi2", "batx1", "batx2", "eso1", "eso2", "eso3", "eso4", "esoee", "adg21", "adg32", "com11", "com21", "com31", "ele21", "ele31", "ifc21", "ifc31", "ifc33", "tmv11", "tmv21", "tmv22", "tmv31", "paccgm"};
     
     static GAM gam;
     static ArrayList<GGrup> cursos;
@@ -284,12 +285,12 @@ public class XML2GAM {
         
         
         llegirEmailsAlumnesFITXER();
-        /**/
+        /*
         System.out.println(emailsAlumnes.size());
         for(String s : emailsAlumnes){
             //gam.afegirGrupUsuari(s, "alumnes@iesmanacor.cat");
             System.out.println("Afegint "+s+ "alumnes@iesmanacor.cat");
-        }/**/
+        }*/
         
         
         //llegirUsuarisCreatsFitxer("2018-10-01");
@@ -319,8 +320,9 @@ public class XML2GAM {
                 case 15: afegirProfesGrups(gam,xml); break;
                 case 16: //llegirEmailsAlumnes(gam); 
                          afegirAlumnes(gam); break;
-                case 17:   removeUsersFromGroup(gam);//removeTAGname(gam); 
-                            break;
+                case 17: removeUsersFromGroup(gam);break;
+                case 18: removeTAGname(gam, emailsAlumnes);break;
+                case 19: actualitzaNomAlumnes(alumnesXML); break;
                 default: break;
             }
         }
@@ -372,7 +374,9 @@ public class XML2GAM {
         System.out.println("14) GAM :: Crea alumne a través de consola en el domini GSUITE IESManacor.");
         System.out.println("15) GAM :: Afegeix els professors als grups de classe en el domini GSUITE IESManacor.");
         System.out.println("16) GAM :: Afegeix els alumnes al domini GSUITE IESManacor.");
-        System.out.println("17) GAM :: Esborra TAGs dels noms dels alumnes.");
+        System.out.println("17) GAM :: Esborra els alumnes dels grups d'alumnes.");
+        System.out.println("18) GAM :: Esborra TAGs dels noms dels alumnes.");
+        System.out.println("19) GAM :: Actualitza els noms dels alumnes (corregir accents).");
         
         System.out.print(">>>>> Tria opció: ");
         Scanner teclat = new Scanner(System.in);
@@ -581,6 +585,20 @@ public class XML2GAM {
         String email =username+"@alumnes.iesmanacor.cat";
         return emailsAlumnes.contains(email);
     }
+    
+    public static void actualitzaNomAlumnes(ArrayList<Alumne> alumnesXML){
+        
+        //llegirEmailsAlumnesFITXER();
+        
+        for(Alumne a : alumnesXML){
+
+            if(nomUsuariDinsDomini(emailsAlumnes, a)){
+                
+                gam.actualitzarNomiLlinatges(a);
+                
+            }
+        }
+    }
      
     public static void comparaAlumnes(ArrayList<Alumne> alumnesXML){
         
@@ -595,6 +613,10 @@ public class XML2GAM {
         for(Alumne a : alumnesXML){
             //if(alumneDinsDomini(users, a)){
             if(nomUsuariDinsDomini(emailsAlumnes, a)){
+                
+                
+                // AIXÒ PER ARREGLAR ACCENTS
+                gam.actualitzarNomiLlinatges(a);
                 
                 //System.out.println("L'alumne " + a + " ja està en el Domini GSuite.");
                 //GUser u = matchingAlumne(users,a);
@@ -780,7 +802,7 @@ public class XML2GAM {
 		e.printStackTrace();
 	}
         
-        System.out.println("NUM ALUMNES AL DOMINI: "+emailsAlumnes.size());
+        System.out.println("NUM. ALUMNES AL DOMINI (emailsAlumnes): "+emailsAlumnes.size());
     }
     
     public static void llegirUsuarisCreatsFitxer(String data){
@@ -812,18 +834,27 @@ public class XML2GAM {
         System.out.println("NUM ALUMNES AL DOMINI: "+emailsAlumnes.size());
     }
     
-    public static void removeTAGname(GAM gam){
-        System.out.print(">>>>> Indica email alumne: ");
+    public static void removeTAGname(GAM gam, ArrayList<String> emailAlumnes){
+        System.out.print(">>>>> Indica email alumne (nom@alumnes.iesmanacor.cat) o tots (tots): ");
         Scanner teclat = new Scanner(System.in);
         String emailAlumne = teclat.next();
-        gam.removeTAGname(emailAlumne);
+        if(emailAlumne.toLowerCase().equals("tots")){
+            gam.removeAllTAGnames(emailAlumnes);
+        }
+        else{
+            gam.removeTAGname(emailAlumne);
+        }
     }
     
     public static void removeUsersFromGroup(GAM gam){
-        System.out.print(">>>>> Indica email del grup: ");
+        System.out.print(">>>>> Indica email del grup (eso1a, ifc33b, ...) o tots (tots): ");
         Scanner teclat = new Scanner(System.in);
         String emailGrup = teclat.next();
-        gam.removeAllUsersFromGroup(emailGrup);
+        if(emailGrup.toLowerCase().equals("tots")){
+            gam.removeAllStudentsFromGroups(TAGS);
+        } else {
+            gam.removeAllUsersFromGroup(emailGrup+"@iesmanacor.cat");
+        }
     }
     
 }
