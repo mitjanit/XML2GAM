@@ -30,9 +30,10 @@ public class XML2GAM {
      * Domini GSuite.
      */
     public static final String DOMINI = "IESMANACOR.CAT";
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final String MEUEMAIL = "aramirez@iesmanacor.cat";
     static final boolean useHotSpot = false;
+    static final String defaultPassword="iesmanacor2019";
     
     /**
      * Conjunt de noms canònics dels grups de correu de tutoria (eso, batx, fp i fpb).
@@ -47,6 +48,7 @@ public class XML2GAM {
     
     static GAM gam;
     static ArrayList<GGrup> cursos;
+    static ArrayList<GGrup> grupsAlumnes;
     static ArrayList<GGrup> deps = new ArrayList<GGrup>();
     static ArrayList<GGrup> grups = new ArrayList<GGrup>();
     static ArrayList<GOrg> orgs;
@@ -56,6 +58,7 @@ public class XML2GAM {
      * Col·lecció dels usuaris professors del domini GSuite.
      */
     static ArrayList<GUser> professors = new ArrayList<GUser>();
+    public static ArrayList<String> emailsProfes;
     
     /**
      * Col·lecció dels usuaris alumnes del domini GSuite.
@@ -78,6 +81,7 @@ public class XML2GAM {
      * Mapa de Hashing dels emails de grups de correus dels departaments del domini GSuite.
      */
     public static HashMap<String, String> emailsDeps;
+    public static HashMap<String, String> emailsGrupsAlumnes;
     
     
     /**
@@ -108,6 +112,23 @@ public class XML2GAM {
         emailsDeps.put("1128", "dept.tecnologia@iesmanacor.cat");
 
         return emailsDeps;
+    }
+    
+    /**
+     * Crea els grups d'alumnes de forma fixa per evitar llegir els grups del GAM.
+     * Pot crear grups no reals (cicles amb grup E).
+     */
+    public void setGrupsAlumnes(){
+        grupsAlumnes = new ArrayList<GGrup>();
+        GGrup g;
+        String[] lletres = {"a", "b", "c", "d", "e"};
+        
+        for(String tag : TAGS){
+            for(String lletra : lletres){
+            String nomGrup = tag+lletra;
+            g = new GGrup(nomGrup,nomGrup,nomGrup+"@iesmanacor.cat");
+            }
+        }
     }
     
     
@@ -279,6 +300,7 @@ public class XML2GAM {
         usernamesProfes = new HashMap<String, Integer>();
         usernamesAlumnes = new HashMap<String, Integer>();
         emailsAlumnes = new ArrayList<String>();
+        emailsProfes = new ArrayList<String>();
         
         // Carrega els codis i emails dels grups de departaments.
         emailsDeps = setEmailsDeps();
@@ -291,6 +313,18 @@ public class XML2GAM {
             //gam.afegirGrupUsuari(s, "alumnes@iesmanacor.cat");
             System.out.println("Afegint "+s+ "alumnes@iesmanacor.cat");
         }*/
+        
+        llegirEmailsProfesFITXER();
+        /**/
+        System.out.println(emailsProfes.size());
+        for(String s : emailsProfes){
+            System.out.println(s);
+        }
+        /**/
+        llegirUsernamesProfes(emailsProfes);
+        /**/
+        System.out.println(usernamesProfes);
+        /**/
         
         
         //llegirUsuarisCreatsFitxer("2018-10-01");
@@ -306,14 +340,14 @@ public class XML2GAM {
                 case 1: profesXML = llegirProfesXML(xml); break;
                 case 2: alumnesXML = llegirAlumnesXML(xml); break;
                 case 3: grupsXML = llegirGrupsXML(xml); break;
-                case 4: professors = llegirProfesGAM(gam); break;
+                case 4: professors = llegirProfesGAM(emailsProfes); break;
                 case 5: alumnes = llegirAlumnesGAM(gam); break;
                 case 6: llegirUsernamesProfesGAM(gam); break;
                 case 7: llegirUsernamesAlumnesGAM(gam); break;
                 case 8: llegirOrganitGAM(gam, orgs); break;
                 case 9: llegirGrupsGAM(gam); break;
                 case 10: llegirDepsGAM(gam); break;
-                case 11: comparaProfes(professors, profesXML); break;
+                case 11: comparaProfes(professors, profesXML, emailsDeps); break;
                 case 12: comparaAlumnes(alumnesXML); break;
                 case 13: creaProfeConsola(); break;
                 case 14: creaAlumneConsola(); break;
@@ -321,8 +355,10 @@ public class XML2GAM {
                 case 16: //llegirEmailsAlumnes(gam); 
                          afegirAlumnes(gam); break;
                 case 17: removeUsersFromGroup(gam);break;
-                case 18: removeTAGname(gam, emailsAlumnes);break;
-                case 19: actualitzaNomAlumnes(alumnesXML); break;
+                //case 18: removeTAGname(gam, emailsAlumnes);break;
+                //case 19: actualitzaNomAlumnes(alumnesXML); break;
+                case 20: suspenAlumnes(gam, emailsAlumnes, alumnesXML);
+                case 21: suspenProfes(gam, professors, profesXML);
                 default: break;
             }
         }
@@ -377,6 +413,8 @@ public class XML2GAM {
         System.out.println("17) GAM :: Esborra els alumnes dels grups d'alumnes.");
         System.out.println("18) GAM :: Esborra TAGs dels noms dels alumnes.");
         System.out.println("19) GAM :: Actualitza els noms dels alumnes (corregir accents).");
+        System.out.println("20) GAM :: Suspen els alumnes GAM que no apareixen al fitxer XML.");
+        System.out.println("21) GAM :: Suspen els professors GAM que no apareixen al fitxer XML.");
         
         System.out.print(">>>>> Tria opció: ");
         Scanner teclat = new Scanner(System.in);
@@ -419,7 +457,7 @@ public class XML2GAM {
         }
         else {
                 System.out.println("El professor " + p + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+p.getCodi());
-                gam.afegirProfessor(p, deps);
+                gam.afegirProfessor(p, emailsDeps);
             }
     }
     
@@ -518,17 +556,17 @@ public class XML2GAM {
     public static void afegirAlumnes(GAM gam){
         for(Alumne a: alumnesXML){
             System.out.println("Afegint l'alumne "+a+" al domini GSUITE.");
-            gam.afegirAlumne(a,cursos);
+            gam.afegirAlumne(a,grupsAlumnes);
         }
     }
     
     
-    public static void comparaProfes(ArrayList<GUser> professors, ArrayList<Professor> profesXML){
+    public static void comparaProfes(ArrayList<GUser> professors, ArrayList<Professor> profesXML, HashMap<String, String> emailsDeps){
         
-        System.out.println("Num. Professors del GSUITE: "+professors.size());
+        System.out.println("Num. Professors del GSUITE (GUsers): "+professors.size());
         System.out.println("Num. Professors del XML: "+profesXML.size());
-        System.out.println("Num. Departaments del GSuite: "+deps.size());
-        System.out.println("Num. Usernames Profes del GSuite: "+usernamesProfes.size());
+        System.out.println("Num. Departaments del GSuite: "+emailsDeps.size());
+        System.out.println("Num. Usernames Profes del GSuite (GUsers): "+usernamesProfes.size());
         
         ArrayList<GUser> users = new ArrayList<GUser>();
         users.addAll(professors);
@@ -538,7 +576,9 @@ public class XML2GAM {
             
             if(professorDinsDomini(p)){
                 
-                System.out.println("El professor " + p + " ja està en el Domini GSuite.");
+                if(XML2GAM.DEBUG){
+                    System.out.println("El professor " + p + " ja està en el Domini GSuite.");
+                }
                 
                 /*
                 GUser u = matchingProfessor(users,p);
@@ -560,9 +600,11 @@ public class XML2GAM {
                 */
             }
             else {
+                if(DEBUG){
                 System.out.println("El professor " + p + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+p.getCodi());
-                System.out.println(p.usuari+",iesmanacor2018,"+p.nom+","+p.ap1+" "+p.ap2+","+p.usuari+"@iesmanacor.cat,"+p.departament);
-                gam.afegirProfessor(p, deps);
+                System.out.println(p.usuari+","+defaultPassword+","+p.nom+","+p.ap1+" "+p.ap2+","+p.usuari+"@iesmanacor.cat,"+p.departament);
+                }
+                gam.afegirProfessor(p, emailsDeps);
                 numNous++;
             }
         }
@@ -616,7 +658,7 @@ public class XML2GAM {
                 
                 
                 // AIXÒ PER ARREGLAR ACCENTS
-                gam.actualitzarNomiLlinatges(a);
+                //gam.actualitzarNomiLlinatges(a);
                 
                 //System.out.println("L'alumne " + a + " ja està en el Domini GSuite.");
                 //GUser u = matchingAlumne(users,a);
@@ -628,7 +670,9 @@ public class XML2GAM {
                 numRepes++;
             }
             else {
-                System.out.println("L'alumne " + a + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+a.getCodi());
+                if(XML2GAM.DEBUG){
+                    System.out.println("L'alumne " + a + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+a.getCodi());
+                }
                 gam.afegirAlumne(a, cursos);
                 numNous++;
             }
@@ -684,6 +728,17 @@ public class XML2GAM {
                 System.out.println(g);
             }
         }
+    }
+    
+    public static ArrayList<GUser> llegirProfesGAM(ArrayList<String> emailsProfes){
+        ArrayList<GUser> profes = new ArrayList<GUser>();
+        for(String email : emailsProfes){
+            System.out.println("Llegint info de "+email);
+            GUser u = gam.getUserInfo(email);
+            profes.add(u);
+        }
+        System.out.println(profes);
+        return profes;
     }
     
     public static ArrayList<GUser> llegirProfesGAM(GAM gam){
@@ -805,6 +860,57 @@ public class XML2GAM {
         System.out.println("NUM. ALUMNES AL DOMINI (emailsAlumnes): "+emailsAlumnes.size());
     }
     
+    public static void llegirUsernamesProfes(ArrayList<String> emailsProfes){
+        usernamesProfes = new HashMap<String, Integer>();
+        for (String email : emailsProfes) {
+
+            //System.out.println("LLegint info de l'usuari: "+linies[i]);
+            String[] cols = email.split("@");
+
+            String nomUser = cols[0];
+            //System.out.print(nomUser+" ");
+            if (Character.isDigit(nomUser.charAt(nomUser.length() - 1))) {
+                nomUser = nomUser.substring(0, nomUser.length() - 1);
+            }
+            //System.out.println(nomUser);
+            if (usernamesProfes.containsKey(nomUser)) {
+                int value = usernamesProfes.get(nomUser);
+                usernamesProfes.replace(nomUser, value, value + 1);
+            } else {
+                usernamesProfes.put(nomUser, 1);
+            }
+        }
+        
+        System.out.println("NUM. USERNAMES PROFES AL DOMINI (emailsProfes): "+usernamesProfes.size());
+        
+    }
+    
+    public static void llegirEmailsProfesFITXER(){
+        emailsProfes = new ArrayList<String>();
+        
+        // Cal executar a la consola la comanda GAM seguent:
+        // gam print users query orgUnitPath=/professors
+        // Copiar els emails al fitxer emailsProfes.txt a l'escriptori
+        
+        try {
+                File file = new File("C:\\Users\\ToniMitjanit\\Desktop\\profes.txt");
+		FileReader fileReader = new FileReader(file);
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		StringBuffer stringBuffer = new StringBuffer();
+		String line;
+		
+                while ((line = bufferedReader.readLine()) != null) {
+			emailsProfes.add(line.trim());
+		}
+		fileReader.close();
+
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+        
+        System.out.println("NUM. PROFES AL DOMINI (emailsProfes): "+emailsProfes.size());
+    }
+    
     public static void llegirUsuarisCreatsFitxer(String data){
         ArrayList<String> emailsDataAlumnes = new ArrayList<String>();
         
@@ -857,7 +963,70 @@ public class XML2GAM {
         }
     }
     
-}
+    /**
+     * Per cada usuari alumne del GAM (agafat del fitxer d'emails) mira si està en el fitxer XML del XESTIB,
+     * Si NO hi és, suspén a l'usuari GAM.
+     * @param gam
+     * @param emailsAlumnes
+     * @param alumnesXML 
+     */
+    public static void suspenAlumnes(GAM gam, ArrayList<String> emailsAlumnes, ArrayList<Alumne> alumnesXML){
+        
+        for(String email : emailsAlumnes){
+            // GUser user = gam.getUserInfo(email);  // No fa falta si empram expedient (5 xifres)
+            int nAt = email.indexOf("@");
+            if(nAt>5){
+                String numExpedientGAM = email.substring(nAt-5, nAt);
+                //System.out.println("Expedient extret de "+email+" es "+numExpedientGAM);
+                boolean suspen = true;
+                for(Alumne a : alumnesXML){
+                    String numExpedientXML = a.expedient;
+                    if(numExpedientXML.equals(numExpedientGAM)){
+                        suspen = false;
+                        break;
+                    }
+                }
+
+                if(suspen){
+                    //System.out.println("Suspen l'alumne "+email);
+                    //gam.suspenUsuari(email);
+                }
+            }
+            else {
+                System.out.println("ERROR!! amb email "+email);
+            }
+        }
+    }
+    
+    
+    /**
+     * Per cada usuari professor del GAM mira si està en el fitxer XML del XESTIB,
+     * Si NO hi és, suspén a l'usuari del GAM.
+     * @param gam   objecte GAM
+     * @param usersProfes   Col·lecció de dades d'usuaris professors del GAM
+     * @param profesXML     Col·lecció de dades d'usuaris professors del fitxer XML del XESTIB
+     */
+    public static void suspenProfes(GAM gam, ArrayList<GUser> usersProfes, ArrayList<Professor> profesXML){
+        
+        for(GUser user : usersProfes){
+            String codiXESTIB_GAM = user.codiXestib;
+            boolean suspen = true;
+            for(Professor p : profesXML){
+                    String codiXESTIB_XML = p.codi;
+                    if(codiXESTIB_XML.equals(codiXESTIB_GAM)){
+                        suspen = false;
+                        break;
+                    }
+                }
+
+                if(suspen){
+                    System.out.println("Suspen el professor/a "+user.email);
+                    //gam.suspenUsuari(email);
+                }
+            }
+        }
+    }
+    
 
         //gam.printAlumnes();
         

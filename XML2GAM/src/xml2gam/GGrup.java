@@ -20,6 +20,18 @@ public class GGrup {
         this.codiDep = codiDep;
     }
     
+    
+    public GGrup(String id, String name, String email){
+        
+        this.id = id;
+        this.name = name;
+        this.description = name;
+        this.email = email;
+        
+        this.departament = false;
+        this.codiDep = "";
+    }
+    
     @Override
     public String toString(){
         String dep = (departament)? "Sí": "No";
