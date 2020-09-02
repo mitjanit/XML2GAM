@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import static xml2gam.XML2GAM.DEBUG;
 
 import static xml2gam.XML2GAM.getEmailDep;
 import static xml2gam.XML2GAM.usernamesProfes;
@@ -373,6 +374,12 @@ public class GAM {
         return orgs;
     }
     
+    public void setUnitatOrganitzativaUsuari(String emailAlumne, String unitat){
+        String command = "D:\\gam\\gam update org "+unitat+" add "+emailAlumne;		
+	String output = obj.executeCommand(command);
+        System.out.println(output);
+    }
+    
     
     
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
@@ -601,6 +608,20 @@ public class GAM {
         System.out.println(output);
     }
     
+    public void printSuspendedAlumnes(){
+        String command = "D:\\gam\\gam print users query \"orgUnitPath='/alumnes' isSuspended=true \"";
+        System.out.println(command);	
+	String output = obj.executeCommand(command);
+        System.out.println(output);
+    }
+    
+    public void printSuspendedProfessors(){
+        String command = "D:\\gam\\gam print users query \"orgUnitPath='/professors' isSuspended=true \"";
+        System.out.println(command);	
+	String output = obj.executeCommand(command);
+        System.out.println(output);
+    }
+    
     /**
     * Elimina els usuaris suspesos d'una unitat en el domini GSuite. 
     * 
@@ -725,6 +746,39 @@ public class GAM {
     }
     
     /**
+     * Actualitza el camp de llinatge d'un alumne GSuite afegint el TAG del seu grup.
+     * @param a Alumne llegit prèviament del fitxer XML del Xestib.
+     */
+    public void actualitzarTAG(Alumne a){
+        
+        //AIXÒ PER CORREGIR ACCENTS
+        String nom = a.nom.toUpperCase();
+        String nomC = remove_accents(nom);
+        String llinatges = a.ap1.toUpperCase()+" "+a.ap2.toUpperCase();
+        String llinatgesC = remove_accents(llinatges);
+        
+        String userName = generateUserName(a);
+        String email =userName+"@alumnes.iesmanacor.cat";
+        
+        String codiGrup = a.codiGrup;
+        if(codiGrup!=null && codiGrup!=""){
+            if(XML2GAM.emailsGrupsAlumnes.containsKey(codiGrup)){
+                String emailGrup = XML2GAM.emailsGrupsAlumnes.get(codiGrup);
+                int atPos = emailGrup.indexOf('@');
+                String tagGrup = "";
+                if(atPos!=-1) {
+                    tagGrup = emailGrup.substring(0, atPos);
+                    // Actualitza NOM i LLINATGES
+                    String command = "D:\\gam\\gam update user "+email+"  lastname \""+llinatgesC.trim()+" "+tagGrup+"\"";
+                    System.out.println(command);
+                    String output = obj.executeCommand(command);
+                    System.out.println(output);
+                }
+            }
+        }
+    }
+    
+    /**
     * Elimina els accents dels noms i llinatges per a generar noms d'usuari del domini GSuite. 
     * 
     * @param  input  Nom o llinatges dels que volem eliminar els accents.
@@ -820,7 +874,7 @@ public class GAM {
         
         if(XML2GAM.usernamesAlumnes.containsKey(username)){
             if(XML2GAM.DEBUG){
-                System.out.println("L'usuari alumne "+username+" ja existeix al domini GSUTITE");
+                //System.out.println("L'usuari alumne "+username+" ja existeix al domini GSUTITE");
             }
             /*int n = XML2GAM.usernamesAlumnes.get(username);
             XML2GAM.usernamesAlumnes.put(username, n + 1);
@@ -907,6 +961,14 @@ public class GAM {
         
     }
     
+    public void afegirCalendariAlumne(String email, String grup){
+        if(XML2GAM.calendarsGrupsAlumnes.containsKey(grup)) {
+            String codiCalendar = XML2GAM.calendarsGrupsAlumnes.get(grup);
+            System.out.println(">>> AFEGINT Calendari del grup "+grup +" a l'usuari "+email+".");
+            afegirUserCalendarACL(email, codiCalendar, "read");
+        }
+    }
+    
     
     public boolean alumneNou(String emailAlumne){
         return !XML2GAM.emailsAlumnes.contains(emailAlumne);
@@ -920,6 +982,100 @@ public class GAM {
     * @param cursos Collecció dels grups de correu del domini corresponents als cursos.
     */  
     public void afegirAlumne(Alumne a, ArrayList<GGrup> cursos){
+        
+        // Generar el nom d'usuari per a l'alumne/a
+        String username = generateUserName(a);
+        String email =username+"@alumnes.iesmanacor.cat";
+        String nom = remove_accents(a.nom);
+        String llinatges = remove_accents(a.ap1)+" "+remove_accents(a.ap2);
+        Grup g = a.grup;
+        
+        if(alumneNou(email) ){
+            
+            if(g!=null){
+                llinatges+= " "+g.nomCanonic+" ";
+                String emailGrupAlumne = "Sense Grup";
+                if(g.codi!=null && XML2GAM.emailsGrupsAlumnes.containsKey(g.codi)){
+                    emailGrupAlumne = XML2GAM.emailsGrupsAlumnes.get(g.codi);
+                }
+                System.out.println(username+","+XML2GAM.defaultPassword+","+a.nom+","+a.ap1+" "+a.ap2+","+email+","+g.codi+","+emailGrupAlumne);  
+
+                String pathOrg = getUnitPath(g);
+                //if(g.nomCanonic)
+                //XML2GAM.getPathUnitatAlumne(XML2GAM.orgs, a);
+                //eso/eso1a falta obtenir el nom canonic de la unitat organitzativa corresponent al grup de l'alumne";
+
+                // Crea usuari
+                String password = XML2GAM.defaultPassword; //"iesmanacor2018";
+                String command = "D:\\gam\\gam create user "+email+" firstname \""+nom+"\" lastname \""+llinatges+"\" password \""+password+"\" changepassword on org "+pathOrg;	
+                if(XML2GAM.DEBUG){
+                    System.out.println(command);
+                }
+                String output = obj.executeCommand(command);
+                if(XML2GAM.DEBUG){
+                    System.out.println(output);
+                }
+
+                // Associar Codi XESTIB
+                String command2 = "D:\\gam\\gam update user "+email+" externalid organization "+a.codi+" ";	
+                if(XML2GAM.DEBUG){
+                    System.out.println(command2);
+                }
+                String output2 = obj.executeCommand(command2);
+                if(XML2GAM.DEBUG){
+                    System.out.println(output2);
+                }
+
+                // Afegeix usuari al grup del curs
+                String emailGrup = g.nomCanonic+"@iesmanacor.cat";
+                if(g.nomCanonic.length()>0 && g.esGrupCanonic()){
+                    System.out.println("Afegint "+email+" a "+emailGrup);
+                    afegirGrupUsuari(email, emailGrup);
+                }
+                else {
+                    if(XML2GAM.DEBUG){
+                        System.out.println("ALERTA!! Alumne sense curs/grup. "+a);
+                    }
+                }
+
+                // Afegir al grup de Alumnes
+                if(XML2GAM.DEBUG){
+                    System.out.println("Afegint "+email+" a alumnes@iesmanacor.cat");
+                }
+                afegirGrupUsuari(email, "alumnes@iesmanacor.cat");
+
+                // HOTSPOT
+                if(XML2GAM.useHotSpot){
+                    HotSpot.addUser(username,XML2GAM.defaultPassword,a.nom,a.ap1+" "+a.ap2,g.nomCanonic, "ALU");
+                    System.out.println("HOTSPOT: Afegit usuari alumne: "+a.nom+" "+a.ap1+" "+a.ap2+" / "+username);
+                }
+            }
+            else {
+                System.out.println(">>>>> GRUP NULL per l'alumne: "+email);
+            }
+        } else {
+            /*System.out.println("L'alumne ja està al domini GSUITE alumnes // "+a);
+            GUser userAlumne = getUserInfo(email);*/
+            
+            // Mirar si s'ha de canviar de grup
+            String nouGrup = " ";
+            String vellGrup = " ";
+            String tagName = g.nomCanonic;
+            if(!nouGrup.equals(vellGrup)){
+                this.removeTAGname(email);  //Borram el tag del llinatge
+                //this.addTAGname(email, tagName);
+                //this.
+            }
+            
+            // Mirar si s'ha de canviar el llinatge (llevar tag)
+            // Mirar si s'ha de canviar de unitat org
+            //
+            /**/
+        }
+           
+    }
+    
+    public void afegirAlumne2(Alumne a, HashMap<String, String> emailsGrupsAlumnes){
         
         // Generar el nom d'usuari per a l'alumne/a
         String username = generateUserName(a);
@@ -960,17 +1116,31 @@ public class GAM {
                     System.out.println(output2);
                 }
 
-                // Afegeix usuari al grup del curs
-                String emailGrup = g.nomCanonic+"@iesmanacor.cat";
-                if(g.nomCanonic.length()>0 && g.esGrupCanonic()){
-                    System.out.println("Afegint "+email+" a "+emailGrup);
+                // Afegeix usuari al grup del curs i al calendar del curs
+                String codiGrup = a.codiGrup;
+                String emailGrup = "";
+                if(emailsGrupsAlumnes.containsKey(codiGrup)){
+                    emailGrup = emailsGrupsAlumnes.get(codiGrup);
+                    if(DEBUG){
+                        System.out.println("Afegint l'usuari "+email+" al grup "+emailGrup);
+                    }
+                    
+                    // Afegir l'usuaro al grup del classe
                     afegirGrupUsuari(email, emailGrup);
-                }
+                    
+                    // Afegir el calendar del seu grup a l'alumne (PER PROVAR)
+                    int atPos = emailGrup.indexOf("@");
+                    String codiGrupEmail = emailGrup.substring(0, atPos);
+                    afegirCalendariAlumne(email, codiGrupEmail);
+                    
+                    }
                 else {
-                    if(XML2GAM.DEBUG){
-                        System.out.println("ALERTA!! Alumne sense curs/grup. "+a);
+                    if(DEBUG){
+                        System.out.println("L'usuari "+email+" not té grup associat al XESTIB !!!!! ");
                     }
                 }
+                
+                
 
                 // Afegir al grup de Alumnes
                 if(XML2GAM.DEBUG){
@@ -1217,6 +1387,19 @@ public class GAM {
         System.out.println(command);
 	String output = obj.executeCommand(command);
         System.out.println(output);
+    }
+    
+    /**
+     * Pendent de provar (només executar un cop!!!!)
+     */
+    public void creaCalendarisGrups(){
+        for(String email : XML2GAM.emailsGrupsAlumnes.values()){
+            System.out.println("CREANT CALENDARI PER AL GRUP "+email);
+            int atPos = email.indexOf("@");
+            String nomGrup = email.substring(0, atPos);
+            String nomGrup2 = nomGrup.toUpperCase();
+            creaCalendariRecurs(nomGrup2, "Calendari Grup "+nomGrup2, "Calendari del grup de classe "+nomGrup2);
+        }
     }
     
     /**

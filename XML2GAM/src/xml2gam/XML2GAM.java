@@ -31,9 +31,10 @@ public class XML2GAM {
      */
     public static final String DOMINI = "IESMANACOR.CAT";
     static final boolean DEBUG = false;
+    static final boolean suspensionEnabled = false;
     static final String MEUEMAIL = "aramirez@iesmanacor.cat";
     static final boolean useHotSpot = false;
-    static final String defaultPassword="iesmanacor2019";
+    static final String defaultPassword="iesmanacor2020";
     
     /**
      * Conjunt de noms canònics dels grups de correu de tutoria (eso, batx, fp i fpb).
@@ -42,7 +43,7 @@ public class XML2GAM {
      /**
      * Noms d'usuaris dels membres de l'equip directiu i del grup directiva@iesmanacor.cat.
      */
-    static final String[] DIRECTIVA = {"fsapena", "mamengual", "mcubells", "mfuster", "mnicolau", "mreyes", "priera", "ssureda"};
+    static final String[] DIRECTIVA = {"fsapena", "mamengual", "pcaldentey", "mfuster", "csorell", "mreyes", "jsimo", "mnicolau"};
     
     static final String[] TAGS = {"bi1", "bi2", "batx1", "batx2", "eso1", "eso2", "eso3", "eso4", "esoee", "adg21", "adg32", "com11", "com21", "com31", "ele21", "ele31", "ifc21", "ifc31", "ifc33", "tmv11", "tmv21", "tmv22", "tmv31", "paccgm"};
     
@@ -58,12 +59,14 @@ public class XML2GAM {
      * Col·lecció dels usuaris professors del domini GSuite.
      */
     static ArrayList<GUser> professors = new ArrayList<GUser>();
+    public static ArrayList<String> suspendedProfes;
     public static ArrayList<String> emailsProfes;
     
     /**
      * Col·lecció dels usuaris alumnes del domini GSuite.
      */
     public static ArrayList<GUser> alumnes;
+    public static ArrayList<String> suspendedAlumnes;
     public static ArrayList<String> emailsAlumnes;
     
     /**
@@ -76,12 +79,230 @@ public class XML2GAM {
      */
     public static HashMap<String, Integer> usernamesAlumnes;
     
+    /**
+     * Mapa de Hashing dels calendaris del grups educatius.
+     */
+    public static HashMap<String, String> calendarsGrupsAlumnes;
+    
     
     /**
      * Mapa de Hashing dels emails de grups de correus dels departaments del domini GSuite.
      */
     public static HashMap<String, String> emailsDeps;
     public static HashMap<String, String> emailsGrupsAlumnes;
+    
+    public static HashMap<String, String> setEmailsGrupsAlumnes() {
+        
+        HashMap<String, String> emailsGrups = new HashMap();
+
+        // 1r ESO
+        emailsGrups.put("436929", "eso1a@iesmanacor.cat");
+        emailsGrups.put("436930", "eso1b@iesmanacor.cat");
+        emailsGrups.put("436931", "eso1c@iesmanacor.cat");
+        emailsGrups.put("436932", "eso1d@iesmanacor.cat");
+        emailsGrups.put("436933", "eso1e@iesmanacor.cat");
+        emailsGrups.put("436934", "eso1f@iesmanacor.cat");
+        //emailsGrups.put("xxxx", "eso1g@iesmanacor.cat");
+        //emailsGrups.put("xxxx", "eso1h@iesmanacor.cat");
+        // 2n ESO
+        emailsGrups.put("436935", "eso2a@iesmanacor.cat");
+        emailsGrups.put("436937", "eso2b@iesmanacor.cat");
+        emailsGrups.put("436938", "eso2c@iesmanacor.cat");
+        emailsGrups.put("436939", "eso2d@iesmanacor.cat");
+        emailsGrups.put("436940", "eso2e@iesmanacor.cat");
+        // 3r ESO
+        emailsGrups.put("436959", "eso3a@iesmanacor.cat");
+        emailsGrups.put("436960", "eso3b@iesmanacor.cat");
+        emailsGrups.put("436961", "eso3c@iesmanacor.cat");
+        emailsGrups.put("436962", "eso3d@iesmanacor.cat");
+        emailsGrups.put("436963", "eso3e@iesmanacor.cat");
+        // 4t ESO
+        emailsGrups.put("436964", "eso4a@iesmanacor.cat");
+        emailsGrups.put("436965", "eso4b@iesmanacor.cat");
+        emailsGrups.put("436966", "eso4c@iesmanacor.cat");
+        emailsGrups.put("436967", "eso4d@iesmanacor.cat");
+        emailsGrups.put("436968", "eso4e@iesmanacor.cat");
+        // 1r Batx
+        emailsGrups.put("436971", "batx1a@iesmanacor.cat");
+        emailsGrups.put("436972", "batx1b@iesmanacor.cat");
+        emailsGrups.put("436973", "batx1c@iesmanacor.cat");
+        emailsGrups.put("436974", "batx1d@iesmanacor.cat");
+        emailsGrups.put("437382", "batx1e@iesmanacor.cat");
+        // 2n Batx
+        emailsGrups.put("437007", "batx2a@iesmanacor.cat");
+        emailsGrups.put("437008", "batx2b@iesmanacor.cat");
+        emailsGrups.put("437010", "batx2c@iesmanacor.cat");
+        // ADG21
+        emailsGrups.put("436990", "adg21a@iesmanacor.cat");
+        emailsGrups.put("436992", "adg21b@iesmanacor.cat");
+        emailsGrups.put("443290", "adg21c@iesmanacor.cat");
+        // ADG32
+        emailsGrups.put("437104", "adg32a@iesmanacor.cat");
+        emailsGrups.put("437105", "adg32b@iesmanacor.cat");
+        emailsGrups.put("443482", "adg32c@iesmanacor.cat");
+        // COM11
+        emailsGrups.put("436977", "com11a@iesmanacor.cat");
+        emailsGrups.put("436978", "com11b@iesmanacor.cat");
+        // COM21
+        emailsGrups.put("436979", "com21a@iesmanacor.cat");
+        emailsGrups.put("436980", "com21b@iesmanacor.cat");
+        emailsGrups.put("443264", "com21c@iesmanacor.cat");
+        // COM31
+        emailsGrups.put("437110", "com31a@iesmanacor.cat");
+        emailsGrups.put("437111", "com31b@iesmanacor.cat");
+        emailsGrups.put("443560", "com31c@iesmanacor.cat");
+        // TMV11
+        emailsGrups.put("436975", "tmv11a@iesmanacor.cat");
+        emailsGrups.put("436976", "tmv11b@iesmanacor.cat");
+        // TMV21
+        emailsGrups.put("436981", "tmv21a@iesmanacor.cat");
+        emailsGrups.put("436982", "tmv21b@iesmanacor.cat");
+        emailsGrups.put("436984", "tmv21c@iesmanacor.cat");
+        emailsGrups.put("443266", "tmv21d@iesmanacor.cat");
+        // TMV22
+        emailsGrups.put("436985", "tmv22a@iesmanacor.cat");
+        emailsGrups.put("436986", "tmv22b@iesmanacor.cat");
+        emailsGrups.put("436987", "tmv22c@iesmanacor.cat");
+        emailsGrups.put("436988", "tmv22d@iesmanacor.cat");
+        emailsGrups.put("443267", "tmv22e@iesmanacor.cat");
+        // TMV31
+        emailsGrups.put("437106", "tmv31a@iesmanacor.cat");
+        emailsGrups.put("437107", "tmv31b@iesmanacor.cat");
+        emailsGrups.put("443483", "tmv31c@iesmanacor.cat");  
+        // ELE21
+        emailsGrups.put("436993", "ele21a@iesmanacor.cat");
+        emailsGrups.put("436995", "ele21b@iesmanacor.cat");
+        emailsGrups.put("443302", "ele21c@iesmanacor.cat");
+        // ELE31
+        emailsGrups.put("437112", "ele31a@iesmanacor.cat");
+        emailsGrups.put("437113", "ele31b@iesmanacor.cat");
+        emailsGrups.put("443561", "ele31c@iesmanacor.cat");
+        // IFC21
+        emailsGrups.put("436997", "ifc21a@iesmanacor.cat");
+        emailsGrups.put("436999", "ifc21b@iesmanacor.cat");
+        emailsGrups.put("437002", "ifc21c@iesmanacor.cat");
+        emailsGrups.put("437003", "ifc21d@iesmanacor.cat");
+        emailsGrups.put("443322", "ifc21e@iesmanacor.cat");
+        // IFC31
+        emailsGrups.put("437102", "ifc31a@iesmanacor.cat");
+        emailsGrups.put("437103", "ifc31b@iesmanacor.cat");
+        emailsGrups.put("443462", "ifc31c@iesmanacor.cat");
+        // IFC33
+        emailsGrups.put("437108", "ifc33a@iesmanacor.cat");
+        emailsGrups.put("437109", "ifc33b@iesmanacor.cat");
+        emailsGrups.put("443557", "ifc33c@iesmanacor.cat");
+        // EEBASICA             
+        emailsGrups.put("436969", "esoeea@iesmanacor.cat");
+        
+        return emailsGrups;
+    }
+    
+    public static HashMap<String, String> setCalendarsGrupsAlumnes() {
+        
+        HashMap<String, String> calendarsGrups = new HashMap();
+
+        // 1r ESO
+        calendarsGrups.put("eso1a", "c_188dcf6qc5u7qgeqmehnnclofb74e4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1b", "c_188apa4lu1l8gh61nc0ohc9hn50ns4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1c", "c_18849i6pmv8jgh52go6qvuvocsmmm4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1d", "c_188d8b7a3cv72g55m965hk5liphgi4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1e", "c_1885ct6mfh8kggnuhp53v0oqhts8g4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1f", "c_188ft83ij8ckqgp9jgqql630lfu844ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1g", "c_188e9ovqeet9ejdqgeoe2ofv8nqjk4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso1h", "c_1880mf7khrf8cgs0kio18pal43e4e4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // 2n ESO
+        calendarsGrups.put("eso2a", "c_1882usr9lehg6jmal3be65bta8aqa4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso2b", "c_188db946f8q0aikqkoo2l53kdgkd44ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso2c", "c_1885pu0b8m688gi4n9sm19sjv5s024ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso2d", "c_1889s4o1pj3lmhimj2s9ndhdir0ku4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso2e", "c_1881ao2f58eiiim8htbfa6b9r8d8a4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // 3r ESO
+        calendarsGrups.put("eso3a", "c_188bi2gfq1pm0g0nhe11f0rg6qg4s4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso3b", "c_1888ti2kpombkhqsnq95q3rr6usuo4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso3c", "c_1889rp621rdc8j8onc1e4vcmc16924ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso3d", "c_1885v7l14rn60g8jg909e833oufbq4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso3e", "c_188bsbd2gc91aic9nic4437nbtrv24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // 4t ESO
+        calendarsGrups.put("eso4a", "c_188fjpr8vb4g4gf9mu51r873q8tr64ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso4b", "c_188bplcv2127sjdhklpc90k0b57544ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso4c", "c_188e3ppqur5oci66kt4qejnvnsfv24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso4d", "c_18862oop2r6u4g6knkuobcu1il2rc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("eso4e", "c_188577oiaa9goganinmj56ms5e0nq4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // 1r Batx
+        calendarsGrups.put("batx1a", "c_1883r33jar55ei6fh87a0ag9orb3u4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx1b", "c_1885citehufiajjugi1cbk0phlfkc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx1c", "c_18889gkkg50h6jh1gmplmn4jbjmri4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx1d", "c_188af98o05rsgj4om2dn85prvosma4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx1e", "c_188arfv29u0peghhg97ksm16pj1504ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // 2n Batx
+        calendarsGrups.put("batx2a", "c_1889dckj25jb2g0umd6ppnufhd9no4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx2b", "c_1889vk37te9g0hstlkg5fbq8eieii4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx2c", "c_188etp7jsqqamhlek913ndihgfuc04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("batx2d", "c_188916scijs76gvfm0j0bbbo6v1c24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // ADG21
+        calendarsGrups.put("adg21a", "c_1889lvtsqf29qhlik4mn6tfponiio4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("adg21b", "c_188f36mphhe6ehbdjlh1q4vtts3g04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("adg21c", "c_188289g04hk9mgjoj43n4djch7g6g4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // ADG32
+        calendarsGrups.put("adg32a", "c_188b7b4o3n7n6i66j79v6vh4dmbim4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("adg32b", "c_18825qt5bsou2hidjtl864hnmpplc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("adg32c", "c_18854779j6h00hitk7bmec5nmjpt04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // COM11
+        calendarsGrups.put("com11a", "c_188dd04g3dblkgk1m5bbb3jdpcso04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("com11b", "c_18867mtv3pkkigeom7ieuq947oore4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // COM21
+        calendarsGrups.put("com21a", "c_18863jlabrbm0i6lijdlhk6m6ln184ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("com21b", "c_1886tlpnhq6fkj5ki1qrnccrngviu4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("com21c", "c_1880ek582a3n8hppmb2lf6q04dedk4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // COM31
+        calendarsGrups.put("com31a", "c_18878mm6r74cihgbh575m2p3f0f044ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("com31b", "c_1889q9pl38seuidegi2t5jh5e9mks4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("com31c", "c_188bn6subrpq6gr4ir4gk9m9bo06s4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // TMV11
+        calendarsGrups.put("tmv11a", "c_18859deji9ptggpkg0mvr77m3o6p24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv11b", "c_188bvie2jf2q2i83m5baa5jp2rii04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // TMV21
+        calendarsGrups.put("tmv21a", "c_1887q0bdt5l1qgn8n47vbifvmeau04ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv21b", "c_1888sio4pg47qjaon7harovucuauc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv21c", "c_188cotj3c4c08gqcn2djj2pllpblk4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv21d", "c_1883966d4eqd8isbnlv3o4le68to64ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // TMV22
+        calendarsGrups.put("tmv22a", "c_188bluc0k9c2ci2pmnhmof1g7vglc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv22b", "c_18814dqqf7etii37g886779gge4dq4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv22c", "c_1884i8fuuv6g0g6rk5ja64lqtgl464ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv22d", "c_1886o4rg6epcch51jraa2e95uc2n24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv22e", "c_188atnqs9jq2cg2uk7n0glfgf07qi4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // TMV31
+        calendarsGrups.put("tmv31a", "c_1881uvpg8kv62ivsimjji2c9p39404ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv31b", "c_18880rbja7rfuhvtio2iqevnatroe4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("tmv31c", "c_1887el2qeimnmhm0mn8r2v6d2gudk4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");  
+        // ELE21
+        calendarsGrups.put("ele21a", "c_188akicvc3f68ggpk5jqr4lus8m064ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ele21b", "c_1882f9mlb37okj5clmkenvavhb94i4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ele21c", "c_18802mbffkp4ugpsibcmfbies5fm44ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // ELE31
+        calendarsGrups.put("ele31a", "c_18811dt3rrrpojqngst2nlprl35vg4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ele31b", "c_1886k33ef0u7ui2bhrf75mu0423u24ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ele31c", "c_188egas7vvj8ggi6k357gvue96ntg4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // IFC21
+        calendarsGrups.put("ifc21a", "c_18848d5tmddesjpgl9opsov5kitrc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc21b", "c_18849epqhonr6ikogj1sh8733o4ti4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc21c", "c_1883s9vtdk8iihslgl8pjg6v3k40g4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc21d", "c_188f1cq0gc58ej1rm1j7733ku759m4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc21e", "c_188d8paija0cgiitgfoammh7bdl2s4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // IFC31
+        calendarsGrups.put("ifc31a", "c_1887l4ipima70gpfn7a14bj55sfbu4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc31b", "c_18813l33g0cp8jcuhr2n3okoor5fe4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc31c", "c_188cb1inrkjgoj4jigfqie7nmbcrc4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // IFC33
+        calendarsGrups.put("ifc33a", "c_188bugl5859cmjacmheh9ag7mhvba4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc33b", "c_188dunoes5a2uhfmhdavqidfofbgu4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        calendarsGrups.put("ifc33c", "c_1880eg9rckn1aj58lgr3jc5r9v7404ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        // EEBASICA             
+        calendarsGrups.put("esoeea", "c_188ed8a9m0go8iclg8ub31uv3ibhs4ged5in6rb1dpgm6rri5phm2t0@resource.calendar.google.com");
+        
+        return calendarsGrups;
+    }
     
     
     /**
@@ -121,7 +342,7 @@ public class XML2GAM {
     public void setGrupsAlumnes(){
         grupsAlumnes = new ArrayList<GGrup>();
         GGrup g;
-        String[] lletres = {"a", "b", "c", "d", "e"};
+        String[] lletres = {"a", "b", "c", "d", "e", "f", "g"};
         
         for(String tag : TAGS){
             for(String lletra : lletres){
@@ -136,7 +357,6 @@ public class XML2GAM {
     public static ArrayList<Professor> profesXML = new ArrayList<Professor>();
     public static ArrayList<Alumne> alumnesXML = new ArrayList<Alumne>();
     public static ArrayList<Grup> grupsXML = new ArrayList<Grup>();
-        
     
     // Execució de comanda en terminal, retorn el resultat de la comanda.
     public static String executeCommand(String command) {
@@ -184,6 +404,18 @@ public class XML2GAM {
         ArrayList<GGrup> grups = gam.getGroups();
         for(GGrup g : grups){
             System.out.println(g);
+        }
+    }
+    
+    // Crea els grups de GSuite corresponents als equips educatius
+    public static void creaGrupsEquipsEducatius(HashMap<String, String> emailsGrups) {
+        for (String s : emailsGrups.values()) {
+            String email = "ee."+s;
+            int at = s.indexOf("@");
+            String nom = "EE " + s.substring(0, at);
+            String desc = "Equip Educatiu " + s.substring(0, at).toUpperCase();
+            System.out.println("Creant grup " + email + " per a " + nom + " (" + desc + ")");
+            gam.creaGrup(email, nom, desc);
         }
     }
     
@@ -302,9 +534,18 @@ public class XML2GAM {
         emailsAlumnes = new ArrayList<String>();
         emailsProfes = new ArrayList<String>();
         
-        // Carrega els codis i emails dels grups de departaments.
+        // Carrega els codis i emails dels grups de departaments (fixe - no canviar mai)..
         emailsDeps = setEmailsDeps();
         
+        // Carrega els codis i emails dels grups d'alumnes (fixe - cada any canviar a principi de curs amb el 1r XML).
+        emailsGrupsAlumnes = setEmailsGrupsAlumnes();
+        
+        // Carrega els codis dels calendars dels equips educatius
+        calendarsGrupsAlumnes = setCalendarsGrupsAlumnes();
+        
+        // Crear grups d'alumnes
+        //gam.creaCalendarisGrups();
+        //gam.creaCalendariRecurs("BATX2D", "Calendari Grup BATX2D", "Calendari del grup de classe BATX2D");
         
         llegirEmailsAlumnesFITXER();
         /*
@@ -333,6 +574,8 @@ public class XML2GAM {
             hs.connectHotSpot();
         }
         
+        //creaGrupsEquipsEducatius(emailsGrupsAlumnes);
+        
         while(true){
             int numOpcio = printOpcionsMenuGAM();
             switch(numOpcio){
@@ -355,15 +598,151 @@ public class XML2GAM {
                 case 16: //llegirEmailsAlumnes(gam); 
                          afegirAlumnes(gam); break;
                 case 17: removeUsersFromGroup(gam);break;
-                //case 18: removeTAGname(gam, emailsAlumnes);break;
+                case 18: removeTAGname(gam, emailsAlumnes);break;
                 //case 19: actualitzaNomAlumnes(alumnesXML); break;
+                case 19: actualitzaTagAlumnes(gam, alumnesXML); break;
                 case 20: suspenAlumnes(gam, emailsAlumnes, alumnesXML);
                 case 21: suspenProfes(gam, professors, profesXML);
+                case 22: afegirAlumnesAlseusGrups(gam, alumnesXML, emailsGrupsAlumnes); break;
+                case 23: mouAlumnesAUnitatOrganitzativa(gam, alumnesXML, emailsGrupsAlumnes); break;
+                case 24: llistarAlumnesSuspesosGSUITE(gam); break;
+                case 25: llistarProfessorsSuspesosGSUITE(gam); break;
+                case 26: llistarAlumnesSuspesosFITXER(); break;
+                case 27: llistarProfessorsSuspesosFITXER(); break;
+                case 28: removeSuspendedAlumnes(gam); break;
+                case 29: removeSuspendedProfes(gam); break;
                 default: break;
             }
         }
         
+     
+    }
+    
+    // S'atasca
+    public static void llistarAlumnesSuspesosGSUITE(GAM gam){
+        gam.printSuspendedAlumnes();
+    }
+    
+    // S'atasca
+    public static void llistarProfessorsSuspesosGSUITE(GAM gam){
+        gam.printSuspendedProfessors();
+    }
+    
+    public static void llistarAlumnesSuspesosFITXER(){
         
+        suspendedAlumnes = new ArrayList<String>();
+        
+        // Cal executar a la consola la comanda GAM seguent:
+        // gam print users query \"orgUnitPath=/"+unitat+" isSuspended=true \""
+        // Copiar els emails al fitxer suspendedAlumnes.txt a l'escriptori
+        
+        System.out.println("ALUMNES SUSPESOS: \n");
+        
+        try {
+                File file = new File("C:\\Users\\ToniMitjanit\\Desktop\\suspendedAlumnes.txt");
+		FileReader fileReader = new FileReader(file);
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		StringBuffer stringBuffer = new StringBuffer();
+		String line;
+		
+                while ((line = bufferedReader.readLine()) != null) {
+			suspendedAlumnes.add(line.trim());
+                        System.out.println(line.trim());
+		}
+		fileReader.close();
+
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+        
+        System.out.println("\nNUM. ALUMNES SUSPESOS (suspendedAlumnes): "+suspendedAlumnes.size());
+    }
+    
+    public static void llistarProfessorsSuspesosFITXER(){
+        
+        suspendedProfes = new ArrayList<String>();
+        
+        // Cal executar a la consola la comanda GAM seguent:
+        // gam print users query \"orgUnitPath=/"+unitat+" isSuspended=true \""
+        // Copiar els emails al fitxer suspendedAlumnes.txt a l'escriptori
+        
+        System.out.println("PROFESSORS SUSPESOS: \n");
+        
+        try {
+                File file = new File("C:\\Users\\ToniMitjanit\\Desktop\\suspendedProfes.txt");
+		FileReader fileReader = new FileReader(file);
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		StringBuffer stringBuffer = new StringBuffer();
+		String line;
+		
+                while ((line = bufferedReader.readLine()) != null) {
+			suspendedProfes.add(line.trim());
+                        System.out.println(line.trim());
+		}
+		fileReader.close();
+
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+        
+        System.out.println("\nNUM. PROFESSORS SUSPESOS (suspendedProfes): "+suspendedProfes.size());
+    }
+    
+    public static void removeSuspendedAlumnes(GAM gam){
+        llistarAlumnesSuspesosFITXER();
+        for(String email : suspendedAlumnes){
+            gam.deleteUser(email);
+        }
+        
+    }
+    
+    public static void removeSuspendedProfes(GAM gam){
+        llistarProfessorsSuspesosFITXER();
+        for(String email : suspendedProfes){
+            gam.deleteUser(email);
+        }
+    }
+    
+    public static void mouAlumnesAUnitatOrganitzativa(GAM gam, ArrayList<Alumne> alumnesXML, HashMap<String, String> emailsGrupsAlumnes){
+        System.out.println(">> Afegint la Unitat Organitzativa corresponent als "+alumnesXML.size()+".");
+        for(Alumne a : alumnesXML){
+            String username = gam.generateUserName(a);
+            String emailAlumne =username+"@alumnes.iesmanacor.cat";
+            if(a.codiGrup!=null){
+                String codiGrup = a.codiGrup;
+                if(emailsGrupsAlumnes.containsKey(codiGrup)){
+                    String emailGrup = emailsGrupsAlumnes.get(codiGrup);
+                    int atpos = emailGrup.indexOf('@');
+                    String u0 = emailGrup.substring(0,atpos-2);
+                    String u1 = emailGrup.substring(0,atpos-1);
+                    if(emailGrup.indexOf("eso")==-1 && emailGrup.indexOf("batx")==-1){
+                        u0 = "fp";
+                    }
+                    else if(emailGrup.indexOf("esoee")!=-1){
+                        u0 = "eso"; u1 = "esoee";
+                    }
+                    String unitat = "/alumnes/"+u0+"/"+u1;
+                    if(DEBUG){
+                        System.out.println("Afegint l'usuari "+emailAlumne+" a la Unitat Organitzativa "+unitat);
+                    }
+                    gam.setUnitatOrganitzativaUsuari(emailAlumne, unitat);
+                }
+            }
+        }
+    }
+    
+    
+    public static void afegirAlumnesAlseusGrups(GAM gam, ArrayList<Alumne> alumnesXML, HashMap<String, String> emailsGrupsAlumnes){
+        for(Alumne a : alumnesXML){
+            String username = gam.generateUserName(a);
+            String emailAlumne =username+"@alumnes.iesmanacor.cat";
+            String codiGrup = a.codiGrup;
+            String emailGrup = emailsGrupsAlumnes.get(codiGrup);
+            if(DEBUG){
+                System.out.println("Afegint l'usuari "+emailAlumne+" al grup "+emailGrup);
+            }
+            gam.afegirGrupUsuari(emailAlumne, emailGrup);
+        }
     }
         
         
@@ -412,10 +791,18 @@ public class XML2GAM {
         System.out.println("16) GAM :: Afegeix els alumnes al domini GSUITE IESManacor.");
         System.out.println("17) GAM :: Esborra els alumnes dels grups d'alumnes.");
         System.out.println("18) GAM :: Esborra TAGs dels noms dels alumnes.");
-        System.out.println("19) GAM :: Actualitza els noms dels alumnes (corregir accents).");
+        //System.out.println("19) GAM :: Actualitza els noms dels alumnes (corregir accents).");
+        System.out.println("19) GAM :: Actualitza els llinatges dels alumnes (afegeix TAG grup).");
         System.out.println("20) GAM :: Suspen els alumnes GAM que no apareixen al fitxer XML.");
         System.out.println("21) GAM :: Suspen els professors GAM que no apareixen al fitxer XML.");
-        
+        System.out.println("22) GAM :: Afegir els alumnes GAM al seu grup de classe d'acord amb XML.");
+        System.out.println("23) GAM :: Afegir els alumnes a la seva Unitat Organitzativa d'acord amb XML.");
+        System.out.println("24) GAM :: Llegir els alumnes suspesos des del domini GSUITE.");
+        System.out.println("25) GAM :: Llegir els professors suspesos des del domini GSUITE.");
+        System.out.println("26) GAM :: Llegir els alumnes suspesos des del FITXER suspendedAlumnes.txt.");
+        System.out.println("27) GAM :: Llegir els professors suspesos des del FITXER suspendedProfes.txt.");
+        System.out.println("28) GAM :: Eliminar alumnes suspesos (FITXER suspendedProfes.txt).");
+        System.out.println("29) GAM :: Eliminar professors suspesos (FITXER suspendedProfes.txt).");
         System.out.print(">>>>> Tria opció: ");
         Scanner teclat = new Scanner(System.in);
         return teclat.nextInt();
@@ -538,7 +925,19 @@ public class XML2GAM {
         if(DEBUG){
             System.out.println("Alumnes llegits del fitxer XML:");
             for(Alumne a : alumnesXML){
-                System.out.println(a);
+                String username = gam.generateUserName(a);
+                String email =username+"@alumnes.iesmanacor.cat";
+            
+                String emailGrup = "";
+                String grup ="SENSE GRUP";
+                
+                if(emailsGrupsAlumnes.containsKey(a.codiGrup)){
+                    emailGrup = emailsGrupsAlumnes.get(a.codiGrup);
+                    int at = emailGrup.indexOf("@");
+                    at = (at!=-1)?at:0;
+                    grup = emailGrup.substring(0, at);
+                }
+                System.out.println(a+","+grup+","+email);
             }
         }
         return alumnesXML;
@@ -580,9 +979,8 @@ public class XML2GAM {
                     System.out.println("El professor " + p + " ja està en el Domini GSuite.");
                 }
                 
-                /*
                 GUser u = matchingProfessor(users,p);
-                
+                /*
                 //
                 //Actualitzar el grup del departament? (Sí/No)
                 gam.actualitzaDepartament(u, p, deps);
@@ -594,10 +992,10 @@ public class XML2GAM {
                 // Afegir al grup de Professors
                 gam.afegirGrupUsuari(u.email, "professors@iesmanacor.cat");
                 //
-                
+                */
                 users.remove(u);
                 numRepes++;
-                */
+                /**/
             }
             else {
                 if(DEBUG){
@@ -610,15 +1008,13 @@ public class XML2GAM {
         }
         System.out.println("Profes nous: "+numNous+", Profes actualitzats: "+numRepes+", Profes obsolets: "+users.size());
         
-        // Profes Obsolets
-        /*
-        if(users.size()>0){
+        // Profes Obsolets que s'han de suspendre
+        if(users.size()>0 && suspensionEnabled){
             for(GUser u : users){
                 System.out.println("Suspenent l'usuari: "+ u);
-                //gam.suspenUsuari(u.email);
+                gam.suspenUsuari(u.email);
             }
         }
-        */
         
     }
     
@@ -628,26 +1024,42 @@ public class XML2GAM {
         return emailsAlumnes.contains(email);
     }
     
-    public static void actualitzaNomAlumnes(ArrayList<Alumne> alumnesXML){
-        
-        //llegirEmailsAlumnesFITXER();
-        
+    /**
+     * Actualitza el llinatge dels alumnes GSuite afegint el TAG del seu grup.
+     * @param gam   Objecte GAM
+     * @param alumnesXML Informació dels alumnes extreta del fitxer XML del Xestib.
+     */
+    public static void actualitzaTagAlumnes(GAM gam, ArrayList<Alumne> alumnesXML){
         for(Alumne a : alumnesXML){
-
-            if(nomUsuariDinsDomini(emailsAlumnes, a)){
-                
+                gam.actualitzarTAG(a);
+        }
+    }
+    
+    public static void actualitzaNomAlumnes(ArrayList<Alumne> alumnesXML){
+        //llegirEmailsAlumnesFITXER();
+        for(Alumne a : alumnesXML){
+            if(nomUsuariDinsDomini(emailsAlumnes, a)){ 
                 gam.actualitzarNomiLlinatges(a);
-                
             }
         }
     }
      
     public static void comparaAlumnes(ArrayList<Alumne> alumnesXML){
         
-        //ArrayList<GUser> users = new ArrayList<GUser>();
-        //users.addAll(alumnes);
-        
+        // Llegeix els emails dels alumnes del fitxer txt
         llegirEmailsAlumnesFITXER();
+        ArrayList<String> emailsSuspesos = new ArrayList<String>();
+        for(String s : emailsAlumnes){
+            String scopy = new String(s);
+            emailsSuspesos.add(scopy);
+        }
+        System.out.println("**Clonat l'array de emails d'alumnes: "+emailsSuspesos.size());
+        
+        // Llegeix els usuaris GSUITE corresponents als
+        //ArrayList<GUser> users = new ArrayList<GUser>();
+        //users = llegirAlumnesGAM(emailsAlumnes);
+        
+        
         //cursos = gam.getGroups();  // Se queda lelo en llegir la info del grup professors@iesmanacor.cat
          
         int numNous=0, numRepes=0;
@@ -655,7 +1067,6 @@ public class XML2GAM {
         for(Alumne a : alumnesXML){
             //if(alumneDinsDomini(users, a)){
             if(nomUsuariDinsDomini(emailsAlumnes, a)){
-                
                 
                 // AIXÒ PER ARREGLAR ACCENTS
                 //gam.actualitzarNomiLlinatges(a);
@@ -667,29 +1078,32 @@ public class XML2GAM {
                 //gam.actualitzaGrup(u, a, grups);
 
                 //users.remove(u);
+                String emailAlumne = gam.generateUserName(a)+"@alumnes.iesmanacor.cat";
+                emailsSuspesos.remove(emailAlumne);
                 numRepes++;
             }
             else {
                 if(XML2GAM.DEBUG){
                     System.out.println("L'alumne " + a + " no està en el Domini GSuite. Cal afegir-lo!!! \tCodi Xestib: "+a.getCodi());
                 }
-                gam.afegirAlumne(a, cursos);
+                // gam.afegirAlumne(a, cursos);  // HE COMENTAT AIXÔ PERQUÊ CREC QUE SOBRA ?????
+                gam.afegirAlumne2(a, XML2GAM.emailsGrupsAlumnes);
                 numNous++;
             }
         }
         System.out.println("Alumnes nous: "+numNous);
         System.out.println("Actualitzats: "+numRepes);
-        //System.out,println(", obsolets: "+users.size());
+        System.out.println(", obsolets: "+emailsSuspesos.size());
         
-        // Profes Obsolets
-        /*
-        if(users.size()>0){
-            for(GUser u : users){
-                System.out.println("Suspenent l'usuari: "+ u);
-                gam.suspenUsuari(u.email);
+        // Alumnes Obsolets
+        /**/
+        if(emailsSuspesos.size()>0 && XML2GAM.suspensionEnabled){
+            for(String s : emailsSuspesos){
+                System.out.println("Suspenent l'usuari: "+ s);
+                gam.suspenUsuari(s);
             }
         }
-        */
+        /**/
     }
      
     
@@ -739,6 +1153,17 @@ public class XML2GAM {
         }
         System.out.println(profes);
         return profes;
+    }
+    
+    public static ArrayList<GUser> llegirAlumnesGAM(ArrayList<String> emailsAlumnes){
+        ArrayList<GUser> alumnes = new ArrayList<GUser>();
+        for(String email : emailsAlumnes){
+            System.out.println("Llegint info de "+email);
+            GUser u = gam.getUserInfo(email);
+            alumnes.add(u);
+        }
+        System.out.println(alumnes);
+        return alumnes;
     }
     
     public static ArrayList<GUser> llegirProfesGAM(GAM gam){
@@ -860,6 +1285,10 @@ public class XML2GAM {
         System.out.println("NUM. ALUMNES AL DOMINI (emailsAlumnes): "+emailsAlumnes.size());
     }
     
+    /** Llegeix els usernames de professors del fitxer txt d'email
+     * 
+     * @param emailsProfes 
+     */
     public static void llegirUsernamesProfes(ArrayList<String> emailsProfes){
         usernamesProfes = new HashMap<String, Integer>();
         for (String email : emailsProfes) {
@@ -868,20 +1297,31 @@ public class XML2GAM {
             String[] cols = email.split("@");
 
             String nomUser = cols[0];
-            //System.out.print(nomUser+" ");
+            System.out.println("NOM USUARI:" +nomUser+" ");
+            int num=0;
             if (Character.isDigit(nomUser.charAt(nomUser.length() - 1))) {
+                
+                char c = nomUser.charAt(nomUser.length() - 1);  // Afegit
                 nomUser = nomUser.substring(0, nomUser.length() - 1);
+                
+                
+                num = Character.getNumericValue(c);      // Afegit
+                System.out.println("Usuari amb numero: "+nomUser+" lletra: "+c+" que es numero: "+num);
             }
             //System.out.println(nomUser);
             if (usernamesProfes.containsKey(nomUser)) {
                 int value = usernamesProfes.get(nomUser);
-                usernamesProfes.replace(nomUser, value, value + 1);
+                //usernamesProfes.replace(nomUser, value, value + 1);
+                usernamesProfes.replace(nomUser, value, Math.max(num, value)); // afegit
+                System.out.println("Uspate username quantity: "+Math.max(num, value));
             } else {
-                usernamesProfes.put(nomUser, 1);
+                //usernamesProfes.put(nomUser, 1);
+                usernamesProfes.put(nomUser, num);  // afegit
             }
         }
         
         System.out.println("NUM. USERNAMES PROFES AL DOMINI (emailsProfes): "+usernamesProfes.size());
+        System.out.println(usernamesProfes);
         
     }
     

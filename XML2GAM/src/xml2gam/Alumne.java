@@ -81,6 +81,7 @@ public class Alumne {
      */
     @Override
     public String toString(){
-        return codi+"\t"+nom+" "+ap1+" "+ap2+"\t"+expedient+"\t"+codiGrup;
+        //return codi+"\t"+nom+" "+ap1+" "+ap2+"\t"+expedient+"\t"+codiGrup;
+        return codi+","+nom+","+ap1+","+ap2+","+expedient+","+codiGrup;
     }
 }
