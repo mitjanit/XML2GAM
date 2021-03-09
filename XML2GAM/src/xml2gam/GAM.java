@@ -116,7 +116,7 @@ public class GAM {
     /**
     * Retorna la informació d'un grup de correu del domini GSuite. 
     * 
-    * @param info Email del grup a consultar (ex: professors@iesmanacor.cat)
+    * @param info Email del grup a consultar (ex: professorat@iesmanacor.cat)
     * @return GGrup Informació del grup de correu del domini GSuite.
     */
     public GGrup getGroupInfo(String info){
@@ -582,6 +582,12 @@ public class GAM {
         System.out.println(">>>>>> Total professors: "+professors.size());
     }
     
+    public void printEmailsProfes(){
+        String command = "D:\\gam\\gam print users query orgUnitPath=/professors";		
+	String output = obj.executeCommand(command);
+        System.out.println(output);
+    }
+    
     /**
     * Imprimeix la informació dels alumnes en el domini GSuite. 
     * 
@@ -944,7 +950,7 @@ public class GAM {
         }
         
         // Afegir al grup de Professors
-        afegirGrupUsuari(email, "professors@iesmanacor.cat");
+        afegirGrupUsuari(email, "professorat@iesmanacor.cat");
         
         // Afegir al Calendari Escolar IES Manacor
         afegirUserCalendarACL(email, "iesmanacor.cat_43616c4945534d616e61636f72@resource.calendar.google.com", "read");
@@ -964,8 +970,20 @@ public class GAM {
     public void afegirCalendariAlumne(String email, String grup){
         if(XML2GAM.calendarsGrupsAlumnes.containsKey(grup)) {
             String codiCalendar = XML2GAM.calendarsGrupsAlumnes.get(grup);
-            System.out.println(">>> AFEGINT Calendari del grup "+grup +" a l'usuari "+email+".");
+            if(XML2GAM.DEBUG){
+                System.out.println(">>> AFEGINT Calendari del grup "+grup +" a l'usuari "+email+".");
+            }
             afegirUserCalendarACL(email, codiCalendar, "read");
+        }
+    }
+    
+    public void afegirCalendariEquipEducatiu(String email, String grup){
+        if(XML2GAM.calendarsGrupsAlumnes.containsKey(grup)) {
+            String codiCalendar = XML2GAM.calendarsGrupsAlumnes.get(grup);
+            if(XML2GAM.DEBUG){
+                System.out.println(">>> AFEGINT Calendari del grup "+grup +" a l'usuari "+email+".");
+            }
+            afegirUserCalendarACL(email, codiCalendar, "editor");
         }
     }
     
@@ -1421,10 +1439,14 @@ public class GAM {
      * @param rol  Rol de l'usuari (freebusy|red|editor|owner).
      */
     public void afegirUserCalendarACL(String emailUser, String emailCalendar, String rol){
-        String command = "D:\\gam\\gam calendar "+emailCalendar+" add "+rol+" "+emailUser;	
-        System.out.println(command);
+        String command = "D:\\gam\\gam calendar "+emailCalendar+" add "+rol+" "+emailUser;
+        if(XML2GAM.DEBUG){
+            System.out.println(command);
+        }
 	String output = obj.executeCommand(command);
-        System.out.println(output);
+        if(XML2GAM.DEBUG){
+            System.out.println(output);
+        }
     }
     
     
@@ -1438,7 +1460,7 @@ public class GAM {
     }
     public void afegirGrupProfesCalendariEscolar(){
         // Afegir al grup de professors al Calendari Escolar IES Manacor
-        afegirUserCalendarACL("professors@iesmanacor.cat", "iesmanacor.cat_43616c4945534d616e61636f72@resource.calendar.google.com", "read");
+        afegirUserCalendarACL("professorat@iesmanacor.cat", "iesmanacor.cat_43616c4945534d616e61636f72@resource.calendar.google.com", "read");
     }
     
     public void afegirProfesCalendariExtraescolar(ArrayList<GUser> profes){
@@ -1452,7 +1474,7 @@ public class GAM {
     
     public void afegirGrupProfesCalendariExtraescolar(){
         // Afegir al grup de professors al Calendari Extraescolar IES Manacor
-        afegirUserCalendarACL("professors@iesmanacor.cat", "iesmanacor.cat_43616c45787472614945534d616e61636f72@resource.calendar.google.com", "read");
+        afegirUserCalendarACL("professorat@iesmanacor.cat", "iesmanacor.cat_43616c45787472614945534d616e61636f72@resource.calendar.google.com", "read");
         
     }
     

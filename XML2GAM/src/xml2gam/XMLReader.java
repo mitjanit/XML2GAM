@@ -1,6 +1,7 @@
 
 package xml2gam;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.text.Normalizer;
@@ -295,12 +296,71 @@ public class XMLReader {
                 for(Grup g: grups){
                     if(g.tutor.equalsIgnoreCase(codi)){
                         tutorGrup = g;
+                        Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament, tutorGrup);
+                        profes.add(p);
                         break;
                     }
                 }
                 
-                Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament, tutorGrup);
-                profes.add(p);
+                
+            }
+        }
+        
+        return profes;   
+    }
+    
+    // Retrona els tutors del fitxer XML
+    ArrayList<Professor> llegirProfesTutors(ArrayList<Grup> grups, String nivell){
+        
+        ArrayList<Professor> profes = new ArrayList<Professor>();
+        NodeList nodes = doc.getElementsByTagName("PROFESSOR");
+        
+        int numProfes = nodes.getLength();
+        if(XML2GAM.DEBUG){
+            System.out.println("\n\tInformació dels " + numProfes + " professors.");
+            System.out.println("\n\tCodi\tNom\tAp1\tAp2");
+        }
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element eProfe = (Element) node;
+                String codi = eProfe.getAttribute("codi");
+                String nom = eProfe.getAttribute("nom");
+                String ap1 = eProfe.getAttribute("ap1");
+                String ap2 = eProfe.getAttribute("ap2");
+                String usuari = eProfe.getAttribute("username");
+                String departament = eProfe.getAttribute("departament");
+                
+                if(XML2GAM.DEBUG && departament.length()==0){
+                    System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + usuari+ "\t" + departament);
+                    System.out.println("ALERTA! El professor/a no té departament!!!");
+                }
+                
+                Grup tutorGrup = null;
+                
+                for(Grup g: grups){
+                    
+            
+                    if(nivell.equals("fp")){
+                        if(g.tutor.equalsIgnoreCase(codi) && !g.nomCanonic.contains("eso") && !g.nomCanonic.contains("batx")){
+                            tutorGrup = g;
+                            Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament, tutorGrup);
+                            profes.add(p);
+                            break;
+                        }
+                    }
+                    else {
+                        if(g.tutor.equalsIgnoreCase(codi) && g.nomCanonic.contains(nivell)){
+                            tutorGrup = g;
+                            Professor p = new Professor(codi, nom, ap1, ap2, usuari, departament, tutorGrup);
+                            profes.add(p);
+                            break;
+                        }
+                    }
+                }
+                
+             
             }
         }
         
@@ -405,6 +465,79 @@ public class XMLReader {
         }
         
         return alus;   
+    }
+    
+    public void printAlumnesCSV(BufferedWriter writer, ArrayList<Grup> grups, GAM gam) throws IOException {
+        
+        ArrayList<Alumne> alus = new ArrayList<Alumne>();
+        NodeList nodes = doc.getElementsByTagName("ALUMNE");
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element eAlumne = (Element) node;
+                String codi = eAlumne.getAttribute("codi");
+                String nom = eAlumne.getAttribute("nom");
+                String ap1 = eAlumne.getAttribute("ap1");
+                String ap2 = eAlumne.getAttribute("ap2");
+                String exp = eAlumne.getAttribute("expedient");
+                String grup = eAlumne.getAttribute("grup");
+                
+                Grup g = getGrupAlumne(grups, grup);
+                    
+                if(g!=null){
+                    Alumne a = new Alumne(codi, nom, ap1, ap2, exp, grup);
+                    a.setGrup(g);
+                    String email = gam.generateUserName(a);
+                    writer.write(ap1+" "+ap2+","+nom+","+email+"@alumnes.iesmanacor.cat"+","+g.nomCanonic+"\n");
+                }
+            }
+        }
+    }
+    
+    
+    public void printAlumnesGrup(ArrayList<Grup> grups, String nomCanonicGrup, GAM gam){
+        
+        ArrayList<Alumne> alus = new ArrayList<Alumne>();
+        NodeList nodes = doc.getElementsByTagName("ALUMNE");
+        
+        String codiGrup = XML2GAM.getCodiGrup(grups, nomCanonicGrup);
+        //System.out.println("CODI GRUP: "+codiGrup);
+
+        if(XML2GAM.DEBUG){
+            //System.out.println("\n\tInformació dels alumnes del curs: "+nomCanonicGrup+".");
+            //System.out.println("\n\tCodi\tNom\tAp1\tAp2\tExpedient\tGrup");
+        }
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element eAlumne = (Element) node;
+                String codi = eAlumne.getAttribute("codi");
+                String nom = eAlumne.getAttribute("nom");
+                String ap1 = eAlumne.getAttribute("ap1");
+                String ap2 = eAlumne.getAttribute("ap2");
+                String exp = eAlumne.getAttribute("expedient");
+                String grup = eAlumne.getAttribute("grup");
+                
+                if(grup.equals(codiGrup)){
+                
+                    Grup g = getGrupAlumne(grups, grup);
+                    
+                    if(g==null){
+                        System.out.println("\t" + codi + "\t" + nom + "\t" + ap1 + "\t" + ap2 + "\t" + exp+ "\t" + grup);
+                        System.out.println("ALERTA! l'alumne/a no té grup!!!");
+                    }
+                    else {
+                        Alumne a = new Alumne(codi, nom, ap1, ap2, exp, grup);
+                        a.setGrup(g);
+                        String email = gam.generateUserName(a);
+                        System.out.println(""+ap1+" "+ap2+","+nom+","+email+"@alumnes.iesmanacor.cat"+","+g.nomCanonic);
+                    }
+                }
+            }
+        }
+         
     }
 
     /**

@@ -39,4 +39,9 @@ public class GUser {
         return email+"\t"+firstName+"\t"+lastName+"\t"+codiXestib+"\t"+orgUnitPath+"\t"+admin+"\t"+suspended+"\t"+gs;
     }
     
+    
+    public boolean isSuspended(){
+        return this.suspended;
+    }
+    
 }
